@@ -1,0 +1,74 @@
+Global_Scint_Lengths: G
+	Comments:  
+		This defines the x-length and y-length of the scintillator cells.  The information is in centimeters
+		This will be used to define the hexogonal shape of the scintillator cell(s), air gaps, MPPC(s) 
+		and Collimator(s).  
+	x-length: 3.72
+	y-length: 3.22
+
+Scintillator: Scint1
+	Comments:
+		Use this block to define each Scintillator cell needed.  Inputs to define this is the top and bottom elevation,
+		The vertex (x and y points) and the spherical data if the cell is intersected by one (Don't include Sphere block
+		if Sphere is not included).  Also, included is the meshing options for the x,y direction and the z direction.
+		All values are in centimeters.
+	z_bot: 0.0
+	z_top: 0.3
+	x_vertex: 0.0
+	y_vertex: 0.0
+	xy_mesh_numb: 2
+	z_mesh_numb: 5
+	Sphere: Intersect1
+		Comments:
+			Use this block only if an intersection occurs.  This block always is defined in the Scintillator block. The values 
+			needed to define this block is the thickness the sphere penetrates the scintillator cell, whether it intersects the 
+			top of bottom of the cell, the vertex (x and y points) of the sphere, and the radius of the sphere.
+		Int_Thickness: 0.23
+		Intersection_Location: Bot
+		x_vertex: 0.0
+		y_vertex: 0.0
+		radius: 1.2
+
+MPPC: MPPC1
+	Comments:  
+		This defines the bottom and top elevations of the MPPC, the vertex (x and y points), x-length of MPCC, y-length of
+		MPCC and the number of meshes in the xy direction and the z direction.
+	z_bot: -0.085
+	z_top: 0.0	
+	x-Length: 0.2
+	y-Length: 0.2
+	z-Height: 0.1
+	x_vertex: 0.0
+	y_vertex: 0.0
+	xy_mesh: 1
+	z_mesh: 1
+	
+AirGap: AirGap1
+	Comments:
+		This defines the air gap between the Scintillator cell and the collimator.  This block defines the bottom elevation
+		and top elevation.
+	z_bot: 0.3
+	z_top: 0.64
+
+AirGap: AirGap2
+	Comments:
+		This defines the air gap above the collimator.  This block defines the bottom elevation and top elevation.
+	z_bot: 1.29
+	z_top: 2.5
+
+Collimator: Cmator1
+	Comments:
+		This defines the starting and ending elevation of the collimator.  This models solid copper. With the exception
+		of one area, which is where the source particle exits.  This is a cylindrical shape made of 'air' the needed inputs are 
+		x and y vertex and the radius
+	z_bot: 0.64
+	z_top: 1.29
+	hole_x: 0
+	hole_y: 0
+	radius: 0.078
+Clmator_Coords, Collimator, zelvLow, zelvHeigh, Xloc, Yloc, Rad /(Part to make, Part name, lower elevation, upper elevation, Center of hole X, Center of Hole Y, Radius of Hole)
+
+#_of_Boundaries_Created
+
+BND## , (coordinates of shape) / Part to make, (give different shape options)
+
