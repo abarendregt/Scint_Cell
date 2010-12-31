@@ -12,7 +12,7 @@ class Scintillator {
   void setYMesh(int msh) {this->yMesh = msh;}
   void setXVert(double Vx) {this->xVert = Vx;}
   void setYVert(double Vy) {this->yVert = Vy;}
-  void setZVert(double Vz) {this->yVert = Vz;}
+  void setZVert(double Vz) {this->zVert = Vz;}
 //This section is the variables used in defining the scintillator cell
   string getName(void) {return this->name;}
   double getXLength(void) {return this->xLength;}
