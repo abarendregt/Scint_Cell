@@ -26,12 +26,14 @@ class MeshScintillator {
 };
 class Scintillator {
   string name;
-  double xLength, yLength, yMesh, xVert, yVert, zVert;
+  double xLength, yLength, yMesh, zLength, zmesh, xVert, yVert, zVert;
   public:
   void setName(string N) {this->name=N;}
   void setXLength(double X) { this->xLength = X;}
   void setYLength(double Y) {this->yLength = Y;}
   void setYMesh(int msh) {this->yMesh = msh;}
+  void setZLength(double Z) {this->zLength = Z;}
+  void setZMesh(int zmsh) {this->zmesh = zmsh;}
   void setXVert(double Vx) {this->xVert = Vx;}
   void setYVert(double Vy) {this->yVert = Vy;}
   void setZVert(double Vz) {this->zVert = Vz;}
@@ -40,6 +42,8 @@ class Scintillator {
   double getXLength(void) {return this->xLength;}
   double getYLength(void) {return this->yLength;}
   int getYMesh(void) {return this->yMesh;}
+  double getZLength(void) {return this->zLength;}
+  int getZMesh(void) {return this->zmesh;}
   double getXVert(void) {return this->xVert;}
   double getYVert(void) {return this->yVert;}
   double getZVert(void) {return this->zVert;}
@@ -53,6 +57,8 @@ int main () {
   scint1.setXLength(3.72);
   scint1.setYLength(3.22);
   scint1.setYMesh(4);  //This number must be even (#!# add test later)
+  scint1.setZLength(0.3);
+  scint1.setZMesh(8);
   scint1.setXVert(0.0);
   scint1.setYVert(0.0);
   scint1.setZVert(0.0);
@@ -60,6 +66,8 @@ int main () {
   scint1.getXLength();
   scint1.getYLength();
   scint1.getYMesh();
+  scint1.getZLength();
+  scint1.getZMesh();
   scint1.getXVert();
   scint1.getYVert();
   scint1.getZVert();
@@ -138,7 +146,7 @@ int main () {
 				S1Mesh[i][j].getPT();
 				cout<<i<<", "<<j<<", "<<S1Mesh[i][j].getPT()<<", null"<<endl;
 			} else if (j+1 == abs(BlankNumb)+1 ||  j == Col-abs(BlankNumb)-1) {
-			  	// set up new function here!!!
+			  	// set up new function NodealTest here!!!
 				/************************************************************************** 
 				  Current test is the node test.  This test assumes the sphere has the same
 				 'x' and 'y' vertex as the scintillator. If this is not the case, then this
@@ -172,8 +180,10 @@ int main () {
 						S1Mesh[i][j].getPT();
 						cout<<i<<", "<<j<<", "<<S1Mesh[i][j].getPT()<<", TRI_Plain"<<endl;
 					}
+			// End new function NodalTest here!!!
 			// Syntax is correct
 			} else { 
+			// (Note: This section is the same as the NodalTest Function that needs to get implemented eventually)
 					if (Sph_Rad > sqrt( pow(S1Mesh[i][j].getxMin()-Sph_VertX,2) + pow(S1Mesh[i][j].getyMin()-Sph_VertY,2) \
 						+ pow(scint1.getZVert()-Sph_VertZ,2) ) ) {
 						S1Mesh[i][j].setPT(RPP_Isect);
@@ -210,6 +220,7 @@ int main () {
 						cout<<i<<", "<<j<<", "<<S1Mesh[i][j].getPT()<<", "<<r<<", RPP_Plain"<<endl;
 					}
 				// Syntax is correct.  Requires more testing to spreadsheet to verify 100% correctness
+			// End NodalTest function
 			}
 		}
 		BlankNumb=BlankNumb-1;
@@ -220,6 +231,28 @@ int main () {
 //******************************************************************************************
 //******************************************************************************************
 //***********************************End of function to Define Type*************************
+
+
+// **************** Start of printing function  ********************************************8
+// This section does two things.
+// 1) Is calculates the z starting, middle and ending elevations
+// 2) It prints the part definition as understood by RAMA.  
+//  Current assumptions:  This assumes that the vertex is at the center of the scintillator cell
+//                        this must be modified later.	
+	double z_elv[scint1.getZMesh()];
+	// This array will be used to determine the elevations for the scintillator. 
+	double Mesh_Height=scint1.getZLength()/scint1.getZMesh();
+
+	for (i=0;i<=scint1.getZMesh();++i){
+		//Starting with the lower elevation
+		if (i == 0){			
+			z_elv[i]=scint1.getZVert();
+		} else if (i == scint1.getZMesh()){
+			z_elv[i]=scint1.getZVert()+scint1.getZLength();
+		} else {
+			z_elv[i]=z_elv[i-1]+Mesh_Height;
+		}
+	}
 
 
 	return 0;
