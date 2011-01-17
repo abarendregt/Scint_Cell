@@ -239,8 +239,11 @@ int main () {
 // 2) It prints the part definition as understood by RAMA.  
 //  Current assumptions:  This assumes that the vertex is at the center of the scintillator cell
 //                        this must be modified later.	
-	double z_elv[scint1.getZMesh()];
-	// This array will be used to determine the elevations for the scintillator. 
+
+
+//This may be the method used, however I am leaning towards what is provided below
+/*	double z_elv[scint1.getZMesh()];
+	// This array will be used to initialize the elevations for the scintillator. 
 	double Mesh_Height=scint1.getZLength()/scint1.getZMesh();
 
 	for (i=0;i<=scint1.getZMesh();++i){
@@ -253,6 +256,72 @@ int main () {
 			z_elv[i]=z_elv[i-1]+Mesh_Height;
 		}
 	}
+*/
+
+	
+
+//This section defines the initial conditions required for making 
+	double z_int[4];  //This defines the elevation where the four edges of the RPP or three edges of the TRI intersect 
+							// the sphere
+	z_int[0]=sqrt( Sph_Rad*Sph_Rad - pow(S1Mesh[i][j].getxMax()-Sph_VertX,2) + pow(S1Mesh[i][j].getyMax()-Sph_VertY,2) ) \ 					+scint1.getZVert();
+	z_int[1]=sqrt( Sph_Rad*Sph_Rad - pow(S1Mesh[i][j].getxMin()-Sph_VertX,2) + pow(S1Mesh[i][j].getyMax()-Sph_VertY,2) ) \ 					+scint1.getZVert();
+	z_int[2]=sqrt( Sph_Rad*Sph_Rad - pow(S1Mesh[i][j].getxMax()-Sph_VertX,2) + pow(S1Mesh[i][j].getyMin()-Sph_VertY,2) ) \ 					+scint1.getZVert();
+	z_int[3]=sqrt( Sph_Rad*Sph_Rad - pow(S1Mesh[i][j].getxMin()-Sph_VertX,2) + pow(S1Mesh[i][j].getyMin()-Sph_VertY,2) ) \ 					+scint1.getZVert();
+// End initializing this part		
+	double z=scint1.getZLength()+scint1.getZVert();
+	while (z > z_int[0]) || (z > z_int[1]) || (z > z_int[2]) || (z > z_int[3]){		
+		z=z-Mesh_Height;
+	}
+	z=z+Mesh_Height;
+//Here is the starting elevation where z needs to be tested.  All the RPP parts above this elevation should be sent to 
+//The Print_RPP_Plain function/object 
+
+// Testing function 1, this function is in place to test whether or not the volume of the RPP or TRI intersected with
+// a sphere is too small to model.  If this is the case then the volume is merged with a larger RPP or TRI so the
+// shape can be preserved.
+	double z_bottom;
+	while (TRUE){		
+		//Test if the sphere is interesction 1,2,3 or all four
+		zbottom=z-Mesh_Height;
+		int count=0;
+		if(zbottom >= z_int[0]){
+			count++;
+		}
+		if(zbottom >= z_int[1]){
+			count++;
+		}
+		if(zbottom >= z_int[2]){
+			count++;
+		}
+		if(zbottom >= z_int[3]){
+			count++;
+		}
+		
+		if(count == 3){
+			//Add Calculate Volume function.  Calculate volume of tetrahedron
+			/*if(Volume too small){
+			  find lowest point.  
+			  z = lowest point
+			  exit;
+			  } else continue;
+			*/
+		} 
+		if (count == 2){
+			//Add Calculate Volume function.  Calculate volume of frustrum of tetrahedron
+			/*if(Volume too small){
+			  find lowest point.  
+			  z = lowest point
+			  exit;
+			  } else continue;
+			*/
+		}  
+		if (count == 4){
+			exit;
+		}
+		//#!#Set up intersected printing function here from zbottom to z
+		z=z-Mesh_Height; 			
+	}
+
 
 
 	return 0;
