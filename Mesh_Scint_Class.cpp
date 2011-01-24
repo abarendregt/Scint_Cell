@@ -6,7 +6,7 @@
 #include <math.h>
 using namespace std;
 
-enum PT {null, Tri_Plain, Tri_Isect, RPP_Plain, RPP_Isect};
+enum PT {null,Tri_Plain,Tri_Isect,RPP_Plain,RPP_Isect};
 class MeshScintillator {
 	double xMin, xMax, yMin, yMax;
 	PT PartType; 
@@ -74,10 +74,10 @@ int main () {
 
 //These are inputs from the Sphere Coordinates
 	string Sph_name;
-	double Sph_Rad=5.7;
+	double Sph_Rad=0.5;
    double Sph_VertX=0;
    double Sph_VertY=0; 
-	double Sph_VertZ=-5.47;
+	double Sph_VertZ=-0.27;
 
 // These are the variables that I need to define
 	int Col = 2*scint1.getYMesh();
@@ -144,9 +144,7 @@ int main () {
 			if (j+1 <= abs(BlankNumb) ||  j > Col-abs(BlankNumb)-1) {
 				S1Mesh[i][j].setPT(null);  
 				S1Mesh[i][j].getPT();
-				cout<<i<<", "<<j<<", "<<S1Mesh[i][j].getPT()<<", null"<<endl;
 			} else if (j+1 == abs(BlankNumb)+1 ||  j == Col-abs(BlankNumb)-1) {
-			  	// set up new function NodealTest here!!!
 				/************************************************************************** 
 				  Current test is the node test.  This test assumes the sphere has the same
 				 'x' and 'y' vertex as the scintillator. If this is not the case, then this
@@ -159,67 +157,47 @@ int main () {
 						+ pow(scint1.getZVert()-Sph_VertZ,2) ) ) {
 						S1Mesh[i][j].setPT(Tri_Isect);
 						S1Mesh[i][j].getPT();
-						cout<<i<<", "<<j<<", "<<S1Mesh[i][j].getPT()<<r<<", TRI_Isect"<<endl;
 					} else if (Sph_Rad > sqrt( pow(S1Mesh[i][j].getxMax()-Sph_VertX,2) + \
 						pow(S1Mesh[i][j].getyMin()-Sph_VertY,2) + pow(scint1.getZVert()-Sph_VertZ,2) ) ) {
 						S1Mesh[i][j].setPT(Tri_Isect);
 						S1Mesh[i][j].getPT();
-						cout<<i<<", "<<j<<", "<<S1Mesh[i][j].getPT()<<", TRI_Isect"<<endl;
 					} else if (Sph_Rad > sqrt( pow(S1Mesh[i][j].getxMin()-Sph_VertX,2) + \
 						pow(S1Mesh[i][j].getyMax()-Sph_VertY,2) + pow(scint1.getZVert()-Sph_VertZ,2) ) ) {
 						S1Mesh[i][j].setPT(Tri_Isect);
 						S1Mesh[i][j].getPT();
-						cout<<i<<", "<<j<<", "<<S1Mesh[i][j].getPT()<<", TRI_Isect"<<endl;
 					} else if (Sph_Rad > sqrt( pow(S1Mesh[i][j].getxMax()-Sph_VertX,2) + \
 						pow(S1Mesh[i][j].getyMax()-Sph_VertY,2) + pow(scint1.getZVert()-Sph_VertZ,2) ) ) {
 						S1Mesh[i][j].setPT(Tri_Isect);
 						S1Mesh[i][j].getPT();
-						cout<<i<<", "<<j<<", "<<S1Mesh[i][j].getPT()<<", TRI_Isect"<<endl;
 					} else {
 						S1Mesh[i][j].setPT(Tri_Plain);
 						S1Mesh[i][j].getPT();
-						cout<<i<<", "<<j<<", "<<S1Mesh[i][j].getPT()<<", TRI_Plain"<<endl;
 					}
 			// End new function NodalTest here!!!
-			// Syntax is correct
+			// Syntax is correct.  This section is tested and functions properly
 			} else { 
 			// (Note: This section is the same as the NodalTest Function that needs to get implemented eventually)
 					if (Sph_Rad > sqrt( pow(S1Mesh[i][j].getxMin()-Sph_VertX,2) + pow(S1Mesh[i][j].getyMin()-Sph_VertY,2) \
 						+ pow(scint1.getZVert()-Sph_VertZ,2) ) ) {
 						S1Mesh[i][j].setPT(RPP_Isect);
 						S1Mesh[i][j].getPT();
-						r=sqrt( pow(S1Mesh[i][j].getxMin()-Sph_VertX,2) + pow(S1Mesh[i][j].getyMin()-Sph_VertY,2) + \
-							pow(scint1.getZVert()-Sph_VertZ,2) );
-						cout<<i<<", "<<j<<", "<<S1Mesh[i][j].getPT()<<", "<<r<<", RPP_Isect"<<endl;
 					} else if (Sph_Rad > sqrt( pow(S1Mesh[i][j].getxMax()-Sph_VertX,2) + \
 						pow(S1Mesh[i][j].getyMin()-Sph_VertY,2)  + pow(scint1.getZVert()-Sph_VertZ,2) ) ) {
 						S1Mesh[i][j].setPT(RPP_Isect);
 						S1Mesh[i][j].getPT();
-						r=sqrt( pow(S1Mesh[i][j].getxMax()-Sph_VertX,2) + pow(S1Mesh[i][j].getyMin()-Sph_VertY,2) \
-							+ pow(scint1.getZVert()-Sph_VertZ,2) );
-						cout<<i<<", "<<j<<", "<<S1Mesh[i][j].getPT()<<", "<<r<<", RPP_Isect"<<endl;
 					} else if (Sph_Rad > sqrt( pow(S1Mesh[i][j].getxMin()-Sph_VertX,2) + \
 						pow(S1Mesh[i][j].getyMax()-Sph_VertY,2) + pow(scint1.getZVert()-Sph_VertZ,2) ) ) {
 						S1Mesh[i][j].setPT(RPP_Isect);
 						S1Mesh[i][j].getPT();
-						r=sqrt( pow(S1Mesh[i][j].getxMin()-Sph_VertX,2) + pow(S1Mesh[i][j].getyMax()-Sph_VertY,2) \
-							+ pow(scint1.getZVert()-Sph_VertZ,2) );
-						cout<<i<<", "<<j<<", "<<r<<S1Mesh[i][j].getPT()<<", "<<r<<", RPP_Isect"<<endl;
 					} else if (Sph_Rad > sqrt( pow(S1Mesh[i][j].getxMax()-Sph_VertX,2) + \
 						pow(S1Mesh[i][j].getyMax()-Sph_VertY,2) + pow(scint1.getZVert()-Sph_VertZ,2) ) ) {
 						S1Mesh[i][j].setPT(RPP_Isect);
 						S1Mesh[i][j].getPT();
-						r=sqrt( pow(S1Mesh[i][j].getxMax()-Sph_VertX,2) + pow(S1Mesh[i][j].getyMax()-Sph_VertY,2) \
-							+ pow(scint1.getZVert()-Sph_VertZ,2) );
-						cout<<i<<", "<<j<<", "<<S1Mesh[i][j].getPT()<<", "<<r<<", RPP_Isect"<<endl;
 					} else {
 						S1Mesh[i][j].setPT(RPP_Plain);
 						S1Mesh[i][j].getPT();
-						r=sqrt( pow(S1Mesh[i][j].getxMax()-Sph_VertX,2) + pow(S1Mesh[i][j].getyMax()-Sph_VertY,2) \
-						+ pow(scint1.getZVert()-Sph_VertZ,2) );
-						cout<<i<<", "<<j<<", "<<S1Mesh[i][j].getPT()<<", "<<r<<", RPP_Plain"<<endl;
 					}
-				// Syntax is correct.  Requires more testing to spreadsheet to verify 100% correctness
+				// Syntax is correct. This section is tested and functions properly
 			// End NodalTest function
 			}
 		}
@@ -261,43 +239,66 @@ int main () {
 	
 
 //This section defines the initial conditions required for making 
+	double Mesh_Height=scint1.getZLength()/scint1.getZMesh();
+	double z_top=scint1.getZLength()+scint1.getZVert();
 	double z_int[4];  //This defines the elevation where the four edges of the RPP or three edges of the TRI intersect 
 							// the sphere
-	z_int[0]=sqrt( Sph_Rad*Sph_Rad - pow(S1Mesh[i][j].getxMax()-Sph_VertX,2) + pow(S1Mesh[i][j].getyMax()-Sph_VertY,2) ) \ 					+scint1.getZVert();
-	z_int[1]=sqrt( Sph_Rad*Sph_Rad - pow(S1Mesh[i][j].getxMin()-Sph_VertX,2) + pow(S1Mesh[i][j].getyMax()-Sph_VertY,2) ) \ 					+scint1.getZVert();
-	z_int[2]=sqrt( Sph_Rad*Sph_Rad - pow(S1Mesh[i][j].getxMax()-Sph_VertX,2) + pow(S1Mesh[i][j].getyMin()-Sph_VertY,2) ) \ 					+scint1.getZVert();
-	z_int[3]=sqrt( Sph_Rad*Sph_Rad - pow(S1Mesh[i][j].getxMin()-Sph_VertX,2) + pow(S1Mesh[i][j].getyMin()-Sph_VertY,2) ) \ 					+scint1.getZVert();
-// End initializing this part		
-	double z=scint1.getZLength()+scint1.getZVert();
-	while (z > z_int[0]) || (z > z_int[1]) || (z > z_int[2]) || (z > z_int[3]){		
+	double z_bottom;
+	int z_numb;
+
+ 
+	for (i=0;i<Row;++i){	
+		for (j=0;j<Col;++j) {
+	
+			if ((S1Mesh[i][j].getPT() != 4) || (S1Mesh[i][j].getPT() != 2)){ 
+			} else {  //This section of code analyses intersecting RPPs or TRIs only
+
+		z_int[0]=sqrt( Sph_Rad*Sph_Rad - pow(S1Mesh[i][j].getxMax()-Sph_VertX,2) - pow(S1Mesh[i][j].getyMax()-Sph_VertY,2) ) \
+ 						+Sph_VertZ;
+		z_int[1]=sqrt( Sph_Rad*Sph_Rad - pow(S1Mesh[i][j].getxMin()-Sph_VertX,2) - pow(S1Mesh[i][j].getyMax()-Sph_VertY,2) ) \
+ 						+Sph_VertZ;
+		z_int[2]=sqrt( Sph_Rad*Sph_Rad - pow(S1Mesh[i][j].getxMax()-Sph_VertX,2) - pow(S1Mesh[i][j].getyMin()-Sph_VertY,2) ) \
+	 					+Sph_VertZ;
+		z_int[3]=sqrt( Sph_Rad*Sph_Rad - pow(S1Mesh[i][j].getxMin()-Sph_VertX,2) - pow(S1Mesh[i][j].getyMin()-Sph_VertY,2) ) \
+	 					+Sph_VertZ;
+
+// End initializing this part, This equation is verified and works properly
+
+
+	cout<<z_int[0]<<", "<<z_int[1]<<", "<<z_int[2]<<", "<<z_int[3]<<endl;
+	double z=z_top;
+	z_numb=0;
+	while ((z > z_int[0]) && (z > z_int[1]) && (z > z_int[2]) && (z > z_int[3])){		
 		z=z-Mesh_Height;
+		z_numb++;
 	}
-	z=z+Mesh_Height;
+
 //Here is the starting elevation where z needs to be tested.  All the RPP parts above this elevation should be sent to 
 //The Print_RPP_Plain function/object 
 
 // Testing function 1, this function is in place to test whether or not the volume of the RPP or TRI intersected with
 // a sphere is too small to model.  If this is the case then the volume is merged with a larger RPP or TRI so the
 // shape can be preserved.
-	double z_bottom;
-	while (TRUE){		
-		//Test if the sphere is interesction 1,2,3 or all four
-		zbottom=z-Mesh_Height;
-		int count=0;
-		if(zbottom >= z_int[0]){
+
+	double z_numb_INT=0;
+	double z_Sph=z;
+	int count;
+	while ("TRUE"){		
+		//Test if the sphere is interescting 1,2,3 or all four edges
+		z_bottom=z_Sph;
+		z_numb_INT++;
+		count=0;  //This is the number of corners that are below the current elevation 
+		if(z_bottom >= z_int[0]){
 			count++;
-		}
-		if(zbottom >= z_int[1]){
+		} if(z_bottom >= z_int[1]){
 			count++;
-		}
-		if(zbottom >= z_int[2]){
+		} if(z_bottom >= z_int[2]){
 			count++;
-		}
-		if(zbottom >= z_int[3]){
+		} if(z_bottom >= z_int[3]){
 			count++;
 		}
 		
-		if(count == 3){
+		if(count == 1){
 			//Add Calculate Volume function.  Calculate volume of tetrahedron
 			/*if(Volume too small){
 			  find lowest point.  
@@ -305,25 +306,46 @@ int main () {
 			  exit;
 			  } else continue;
 			*/
+			cout<<"count=1"<<endl;
+			break;
 		} 
 		if (count == 2){
 			//Add Calculate Volume function.  Calculate volume of frustrum of tetrahedron
 			/*if(Volume too small){
 			  find lowest point.  
 			  z = lowest point
-			  exit;
+			  
 			  } else continue;
 			*/
+			cout<<"count=2"<<endl;
+			break;
 		}  
 		if (count == 4){
-			exit;
+			cout<<"count=4"<<endl;
+			break; //part of testing delete after verification
 		}
-		//#!#Set up intersected printing function here from zbottom to z
-		z=z-Mesh_Height; 			
+		if (count == 3){
+			cout<<"count=3"<<endl; //This is a test. delete after verification
+		}
+		//#!#Set up intersected printing function here from z_bottom to z
+		if (z_Sph<=scint1.getZVert()){
+			break;
+		}
+		z_Sph=z_Sph-Mesh_Height; 
 	}
+//End Test Function 1
 
 
 
+//Test output
+		cout<<i<<", "<<j<<", "<<S1Mesh[i][j].getxMin()<<", "<<S1Mesh[i][j].getxMax()<<", ";
+		cout<<S1Mesh[i][j].getyMin()<<", "<<S1Mesh[i][j].getyMax()<<", "<<z_top<<", "<<z;
+		cout<<", "<<z_numb_INT<<", "<<S1Mesh[i][j].getPT()<<endl<<endl;
+
+
+		}	
+		}
+	}
 	return 0;
 }
 
