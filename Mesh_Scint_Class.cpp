@@ -119,9 +119,6 @@ int main () {
 			S1Mesh[i][j].setyMin(ymin);
 			S1Mesh[i][j].setxMax(xmax);
 			S1Mesh[i][j].setyMax(ymax);
-			//This was in place to test if this works properly			
-			//cout<<i<<", "<<j<<", "<<S1Mesh[i][j].getxMin()<<", "<<S1Mesh[i][j].getxMax();
-			//cout<<", "<<S1Mesh[i][j].getyMin()<<", "<<S1Mesh[i][j].getyMax()<<endl;
 		}
 	}
 
@@ -136,7 +133,7 @@ int main () {
 //****************************************************************************************
 //****************************************************************************************
 	int BlankNumb;
-	double r;
+
 	BlankNumb = scint1.getYMesh()/2-1;  //This is the maximum # of null cells
 	// Define the rows
 	for (i=0;i<Row;++i){	
@@ -218,24 +215,6 @@ int main () {
 //  Current assumptions:  This assumes that the vertex is at the center of the scintillator cell
 //                        this must be modified later.	
 
-
-//This may be the method used, however I am leaning towards what is provided below
-/*	double z_elv[scint1.getZMesh()];
-	// This array will be used to initialize the elevations for the scintillator. 
-	double Mesh_Height=scint1.getZLength()/scint1.getZMesh();
-
-	for (i=0;i<=scint1.getZMesh();++i){
-		//Starting with the lower elevation
-		if (i == 0){			
-			z_elv[i]=scint1.getZVert();
-		} else if (i == scint1.getZMesh()){
-			z_elv[i]=scint1.getZVert()+scint1.getZLength();
-		} else {
-			z_elv[i]=z_elv[i-1]+Mesh_Height;
-		}
-	}
-*/
-
 	
 
 //This section defines the initial conditions required for making 
@@ -250,8 +229,9 @@ int main () {
 	for (i=0;i<Row;++i){	
 		for (j=0;j<Col;++j) {
 	
-			if ((S1Mesh[i][j].getPT() != 4) || (S1Mesh[i][j].getPT() != 2)){ 
-			} else {  //This section of code analyses intersecting RPPs or TRIs only
+			if ((S1Mesh[i][j].getPT() != 4) && (S1Mesh[i][j].getPT() != 2)){ 		
+			} 
+			else {  //This section of code analyses intersecting RPPs or TRIs only
 
 		z_int[0]=sqrt( Sph_Rad*Sph_Rad - pow(S1Mesh[i][j].getxMax()-Sph_VertX,2) - pow(S1Mesh[i][j].getyMax()-Sph_VertY,2) ) \
  						+Sph_VertZ;
@@ -303,8 +283,11 @@ int main () {
 			/*if(Volume too small){
 			  find lowest point.  
 			  z = lowest point
-			  exit;
-			  } else continue;
+
+			  break;
+			  } else 
+				z_numb_INT--;
+				continue;
 			*/
 			cout<<"count=1"<<endl;
 			break;
@@ -314,8 +297,10 @@ int main () {
 			/*if(Volume too small){
 			  find lowest point.  
 			  z = lowest point
-			  
-			  } else continue;
+			  break;
+			  } else 
+				z_numb_INT--;
+				continue;
 			*/
 			cout<<"count=2"<<endl;
 			break;
@@ -327,7 +312,6 @@ int main () {
 		if (count == 3){
 			cout<<"count=3"<<endl; //This is a test. delete after verification
 		}
-		//#!#Set up intersected printing function here from z_bottom to z
 		if (z_Sph<=scint1.getZVert()){
 			break;
 		}
@@ -335,11 +319,9 @@ int main () {
 	}
 //End Test Function 1
 
-
-
-//Test output
+		//Test output (used for printing function)
 		cout<<i<<", "<<j<<", "<<S1Mesh[i][j].getxMin()<<", "<<S1Mesh[i][j].getxMax()<<", ";
-		cout<<S1Mesh[i][j].getyMin()<<", "<<S1Mesh[i][j].getyMax()<<", "<<z_top<<", "<<z;
+		cout<<S1Mesh[i][j].getyMin()<<", "<<S1Mesh[i][j].getyMax()<<", "<<z_top<<", "<<z_Sph;
 		cout<<", "<<z_numb_INT<<", "<<S1Mesh[i][j].getPT()<<endl<<endl;
 
 
