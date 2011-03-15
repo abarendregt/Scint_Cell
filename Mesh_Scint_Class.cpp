@@ -3,7 +3,7 @@
 #include <string>
 #include <sstream>
 #include <cstdlib>
-#include <math.h>
+#include <cmath>
 #include <vector>
 #include "MeshScintillator.h"
 #include "Scintillator.h"
@@ -14,7 +14,8 @@ using namespace std;
 void SetMeshBoundary(int Row, int Col,vector< vector<MeshScintillator > >& S1Mesh, Scintillator s);
 void AssignTriPT(int i, int j,vector< vector<MeshScintillator > >& S1Mesh, Scintillator scint1, Sphereisect sphere1);
 void AssignRppPT(int i, int j,vector< vector<MeshScintillator > >& S1Mesh, Scintillator scint1, Sphereisect sphere1);
-
+void bubbleSort(double arr[], int n);
+double FindSpherePoint(double r, double x_loc, double y_loc);
 
 int main () {
   Scintillator scint1;
@@ -37,9 +38,8 @@ int main () {
 	
 //Assign proper part type to MeshScintillator
 /************************************************************************** 
-  Current test is the node test.  This test assumes the sphere has the same
- 'x' and 'y' vertex as the scintillator. If this is not the case, then this
- test may fail sometimes.  Consider adding more tests at a later time.
+ This function assumes the sphere has the same 'x' and 'y' vertex as the scintillator. 
+ If this is not the case, then this test may fail.  Consider adding more tests at a later time.
 
  Also assumed is that the sphere vertex is lower than the scintillator.
  This should be fixed at a later time!!!! (#!#)
@@ -68,22 +68,24 @@ int main () {
 //This section defines the initial conditions required for making 
 	double Mesh_Height=scint1.getZLength()/scint1.getZMesh();
 	double z_top=scint1.getZLength()+scint1.getZVert();
-	double z_isect[4];  //This defines the elevation where the four edges of the RPP or three edges of the TRI intersect 
+	double z_isect[4], sorted_isect[4];  //This defines the elevation where the four edges of the RPP or three edges of the TRI intersect 
 							// the sphere
-	double z_bottom;
+	double z_bottom=scint1.getZVert();
 	int z_numb;
+	vector <double> z_elvs;
+ 	z_elvs.resize(scint1.getZMesh()+1);
 
- 
+
 	for (i=0;i<Row;++i){	
 		for (j=0;j<Col;++j) {
-			if ((S1Mesh[i][j].getPT() != 4) && (S1Mesh[i][j].getPT() != 2)){ 		
+			if ((S1Mesh[i][j].getPT() == Tri_Plain) || (S1Mesh[i][j].getPT() == RPP_Plain)){ 		
 				// #!# Print TRI_plain or RPP_plain!!!
 				// This is for 
 			} 
-			else {  //This section of code analyses intersecting RPPs or TRIs only
+			else if ((S1Mesh[i][j].getPT() == Tri_Isect) || (S1Mesh[i][j].getPT() == RPP_Isect)) {  
 
-				z_isect[0]=sqrt( sphere1.getRadius()*sphere1.getRadius() - pow(S1Mesh[i][j].getxMax()-sphere1.getXVert(),2) \
-								- pow(S1Mesh[i][j].getyMax()-sphere1.getYVert(),2) ) +sphere1.getZVert();
+				z_isect[0]=FindSpherePoint(sphere1.getRadius(),S1Mesh[i][j].getxMax()-sphere1.getXVert(), \
+								S1Mesh[i][j].getyMax()-sphere1.getYVert()) +sphere1.getZVert();  //Fix for arrays 1,2 and 3
 				z_isect[1]=sqrt( sphere1.getRadius()*sphere1.getRadius() - pow(S1Mesh[i][j].getxMin()-sphere1.getXVert(),2) \
 								- pow(S1Mesh[i][j].getyMax()-sphere1.getYVert(),2) ) +sphere1.getZVert();
 				z_isect[2]=sqrt( sphere1.getRadius()*sphere1.getRadius() - pow(S1Mesh[i][j].getxMax()-sphere1.getXVert(),2) \
@@ -91,78 +93,160 @@ int main () {
 				z_isect[3]=sqrt( sphere1.getRadius()*sphere1.getRadius() - pow(S1Mesh[i][j].getxMin()-sphere1.getXVert(),2) \
 								- pow(S1Mesh[i][j].getyMin()-sphere1.getYVert(),2) ) +sphere1.getZVert();
 
-				// End initializing this part, This equation is verified and works properly
-
-
 				cout<<z_isect[0]<<", "<<z_isect[1]<<", "<<z_isect[2]<<", "<<z_isect[3]<<endl;
-				double z=z_top;
-				z_numb=0;
-				while ((z > z_isect[0]) && (z > z_isect[1]) && (z > z_isect[2]) && (z > z_isect[3])){		
-					z=z-Mesh_Height;
+
+				if ((z_isect[0]!=z_isect[0])||(z_isect[1]!=z_isect[1])||(z_isect[2]!=z_isect[2])||(z_isect[3]!=z_isect[3])){
+					// No voided regions. Print TRI_isect or RPP_isect
+					cout<<"Break"<<endl;					
+					continue;
+				}  
+				if 
+				((z_isect[0]<0)||(z_isect[1]<0)||(z_isect[2]<0)||(z_isect[3]<0)){
+					// No voided regions. Print TRI_isect or RPP_isect
+					cout<<"Break"<<endl;					
+					continue;
+				}  
+				for (int k=0;k<4;++k){
+					sorted_isect[k]=z_isect[k];
+				}
+				bubbleSort(sorted_isect, 4);
+				cout<<sorted_isect[0]<<", "<<sorted_isect[1]<<", "<<sorted_isect[2]<<", "<<sorted_isect[3]<<endl;
+
+				double top_isect=sorted_isect[3];
+				double bot_isect=sorted_isect[0];
+				int z_numb=0;
+
+				//number of full RPPs
+				double temp=z_top;
+				while (z_top < top_isect){		
+					temp=temp - Mesh_Height;
 					z_numb++;
 				}
-
-				//Here is the starting elevation where z needs to be tested.  All the RPP parts above this elevation 
-				// should be sent to the Print_RPP_Plain function/object 
-
-				// Testing function 1, this function is in place to test whether or not the volume of the RPP or TRI 
-            //intersected with a sphere is too small to model.  If this is the case then the volume is merged with a 
-				//larger RPP or TRI so the shape can be preserved.
-
-				double z_numb_INT=0;
-				double z_Sph=z;
-				int count;
-				while ("TRUE"){		
-					//Test if the sphere is interescting 1,2,3 or all four edges
-					z_bottom=z_Sph;
-					z_numb_INT++;
-					count=0;  //This is the number of corners that are below the current elevation 
-					if(z_bottom >= z_isect[0]){
-						count++;
-					} if(z_bottom >= z_isect[1]){
-						count++;
-					} if(z_bottom >= z_isect[2]){
-						count++;
-					} if(z_bottom >= z_isect[3]){
-						count++;
-					}
 				
-					if(count == 1){
-					//Add Calculate Volume function.  Calculate volume of tetrahedron
-						/*if(Volume too small){
-					  find lowest point.  
-						  z = lowest point
-		
-					  break;
-						  } else 
-						z_numb_INT--;
-						continue;
-					*/
-						cout<<"count=1"<<endl;
-						break;
-					} if (count == 2){
-						//Add Calculate Volume function.  Calculate volume of frustrum of tetrahedron
-						/*if(Volume too small){
-						  find lowest point.  
-						  z = lowest point
-						  break;
-						  } else 
-							z_numb_INT--;
-							continue;
-						*/
-						cout<<"count=2"<<endl;
-						break;
-					} if (count == 4){
-						cout<<"count=4"<<endl;
-						break; //part of testing delete after verification
-					} if (count == 3){
-						cout<<"count=3"<<endl; //This is a test. delete after verification
-					} if (z_Sph<=scint1.getZVert()){
-						break;
+				temp=z_top;
+				if (z_numb > 1) {
+					z_elvs.resize(z_numb+1);
+					for (int n=0;i<=z_numb;n++){
+						z_elvs[n]=temp;
+						temp= temp - Mesh_Height;
 					}
-					z_Sph=z_Sph-Mesh_Height; 
+					//#!# Add Print RPP_FULL function
 				}
-			//End Test Function 1
+				
+				//find upper height of voided region
+				while (z_bottom > bot_isect-Mesh_Height) {
+					z_bottom = z_bottom + Mesh_Height;
+				}
+				
+				// Test intersecting region
+				z_top=z_elvs[z_numb+1];
+				temp=z_bottom;
+				vector <double> test_elvs;
+				test_elvs.resize(scint1.getZMesh()+1);
+				test_elvs[0]=z_bottom;
+				int n=0;
+				double Total_Vol=Mesh_Height*(scint1.getYLength()/scint1.getYMesh())*(scint1.getXLength()/(2*scint1.getYMesh()));
+				double testHeight,test_Xlen,test_Ylen,test_Vol;
+				while (temp > z_top) {
+					temp = temp + Mesh_Height;
+					if (temp < z_isect[2]){
+						if (temp < z_isect[1]){
+							// test using volume of tetrahedron
+							testHeight=temp-bot_isect;
+							if(sorted_isect[0]==z_isect[0]){
+								test_Xlen=FindSpherePoint(sphere1.getRadius(),temp,S1Mesh[i][j].getyMax()-sphere1.getYVert())/
+													 -S1Mesh[i][j].getxMax();
+								test_Ylen=FindSpherePoint(sphere1.getRadius(),temp,S1Mesh[i][j].getxMax()-sphere1.getXVert())/
+													 -S1Mesh[i][j].getyMax();
+								test_Vol=testHeight*test_Xlen*test_Ylen/6;
+							}
+							else if (sorted_isect[0]==z_isect[1]){
+								test_Xlen=FindSpherePoint(sphere1.getRadius(),temp,S1Mesh[i][j].getyMax()-sphere1.getYVert())/
+													 -S1Mesh[i][j].getxMin();
+								test_Ylen=FindSpherePoint(sphere1.getRadius(),temp,S1Mesh[i][j].getxMin()-sphere1.getXVert())/
+													 -S1Mesh[i][j].getyMax();
+								test_Vol=testHeight*test_Xlen*test_Ylen/6;
+							}
+							else if (sorted_isect[0]==z_isect[2]){
+								test_Xlen=FindSpherePoint(sphere1.getRadius(),temp,S1Mesh[i][j].getyMin()-sphere1.getYVert())/
+													 -S1Mesh[i][j].getxMax();
+								test_Ylen=FindSpherePoint(sphere1.getRadius(),temp,S1Mesh[i][j].getxMax()-sphere1.getXVert())/
+													 -S1Mesh[i][j].getyMin();
+								test_Vol=testHeight*test_Xlen*test_Ylen/6;
+							}
+							else{
+								test_Xlen=FindSpherePoint(sphere1.getRadius(),temp,S1Mesh[i][j].getyMin()-sphere1.getYVert())/
+													 -S1Mesh[i][j].getxMin();
+								test_Ylen=FindSpherePoint(sphere1.getRadius(),temp,S1Mesh[i][j].getxMin()-sphere1.getXVert())/
+													 -S1Mesh[i][j].getyMin();
+								test_Vol=testHeight*test_Xlen*test_Ylen/6;
+							}
+							
+							
+							if (test_Vol < 0.05*Total_Vol){
+								//Too small of a volume
+								continue;
+							} else{
+								n++;
+								test_elvs[n]=temp; 
+							}
+						}
+						else {
+							// test using frustrum of tetrahedron
+							testHeight=temp-bot_isect;
+							double A1,A2,test_Xlen2,test_Ylen2;
+							if(sqrt(abs(pow(sphere1.getRadius(),2)-temp*temp))<=S1Mesh[i][j].getxMax()){
+								test_Ylen=FindSpherePoint(sphere1.getRadius(),temp,S1Mesh[i][j].getxMax()-sphere1.getXVert())/
+												-S1Mesh[i][j].getyMin();
+								A1=0.5*test_Ylen*testHeight;
+								test_Ylen2=FindSpherePoint(sphere1.getRadius(),temp,S1Mesh[i][j].getxMax()-sphere1.getXVert())/
+												-S1Mesh[i][j].getyMax();
+								A2=0.5*test_Ylen2*testHeight;
+								test_Vol=(A1+A2+sqrt(A1*A2))/3;
+							}
+							else if (sqrt(abs(pow(sphere1.getRadius(),2)-temp*temp))<=S1Mesh[i][j].getxMin()){
+								test_Ylen=FindSpherePoint(sphere1.getRadius(),temp,S1Mesh[i][j].getxMin()-sphere1.getXVert())/
+												-S1Mesh[i][j].getyMin();
+								A1=0.5*test_Ylen*testHeight;
+								test_Ylen2=FindSpherePoint(sphere1.getRadius(),temp,S1Mesh[i][j].getxMin()-sphere1.getXVert())/
+												-S1Mesh[i][j].getyMax();
+								A2=0.5*test_Ylen2*testHeight;
+								test_Vol=(A1+A2+sqrt(A1*A2))/3;
+							}
+							else if (sqrt(abs(pow(sphere1.getRadius(),2)-temp*temp))<=S1Mesh[i][j].getyMax()){
+								test_Xlen=FindSpherePoint(sphere1.getRadius(),temp,S1Mesh[i][j].getyMax()-sphere1.getYVert())/
+												-S1Mesh[i][j].getxMin();
+								A1=0.5*test_Xlen*testHeight;
+								test_Xlen2=FindSpherePoint(sphere1.getRadius(),temp,S1Mesh[i][j].getyMax()-sphere1.getYVert())/
+												-S1Mesh[i][j].getxMax();
+								A2=0.5*test_Xlen2*testHeight;
+								test_Vol=(A1+A2+sqrt(A1*A2))/3;
+							}
+							else{
+								test_Xlen=FindSpherePoint(sphere1.getRadius(),temp,S1Mesh[i][j].getyMin()-sphere1.getYVert())/
+												-S1Mesh[i][j].getxMin();
+								A1=0.5*test_Xlen*testHeight;
+								test_Xlen2=FindSpherePoint(sphere1.getRadius(),temp,S1Mesh[i][j].getyMin()-sphere1.getYVert())/
+												-S1Mesh[i][j].getxMax();
+								A2=0.5*test_Xlen2*testHeight;
+								test_Vol=(A1+A2+sqrt(A1*A2))/3;
+							}
+
+							if (test_Vol < 0.05*Total_Vol){
+								//Too small of a volume
+								continue;
+							} else{
+								n++;
+								test_elvs[n]=temp; 
+							}						
+						}
+					} else {
+						n++;
+						test_elvs[n]=temp; 
+					}
+				}
+				
+
 
 
 // **************** Start of printing function  ********************************************8
@@ -174,19 +258,22 @@ int main () {
 
 	
 				//Test output (used for printing function)
-				cout<<i<<", "<<j<<", "<<S1Mesh[i][j].getxMin()<<", "<<S1Mesh[i][j].getxMax()<<", ";
-				cout<<S1Mesh[i][j].getyMin()<<", "<<S1Mesh[i][j].getyMax()<<", "<<z_top<<", "<<z_Sph;
-				cout<<", "<<z_numb_INT<<", "<<S1Mesh[i][j].getPT()<<endl<<endl;
+				//cout<<i<<", "<<j<<", "<<S1Mesh[i][j].getxMin()<<", "<<S1Mesh[i][j].getxMax()<<", ";
+				//cout<<S1Mesh[i][j].getyMin()<<", "<<S1Mesh[i][j].getyMax()<<", "<<z_top<<", "<<z_Sph;
+				//cout<<", "<<z_numb_INT<<", "<<S1Mesh[i][j].getPT()<<endl<<endl;
 
 
-			}	
+			} else {} //part is null do nothing	
 		}
 	}
 	return 0;
 }
 
 
-
+double FindSpherePoint(double r, double x_loc, double y_loc) {
+	double Point=sqrt( pow(r,2) - pow(x_loc,2) - pow(y_loc,2) );
+	return Point;
+}
 
 void SetMeshBoundary(int Row, int Col,vector< vector<MeshScintillator > >& S1Mesh, Scintillator s) {
 	double yMeshLth=s.getYLength()/s.getYMesh();
@@ -260,4 +347,22 @@ void AssignRppPT(int i, int j,vector< vector<MeshScintillator > >& S1Mesh, Scint
 	}
 }
 
+
+void bubbleSort(double arr[], int n) {
+      bool swapped = true;
+      int j = 0;
+      double tmp;
+      while (swapped) {
+            swapped = false;
+            j++;
+            for (int i = 0; i < n - j; i++) {
+                  if (arr[i] > arr[i + 1]) {
+                        tmp = arr[i];
+                        arr[i] = arr[i + 1];
+                        arr[i + 1] = tmp;
+                        swapped = true;
+                  }
+            }
+      }
+}
 
