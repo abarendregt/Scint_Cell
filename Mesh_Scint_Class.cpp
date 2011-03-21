@@ -122,7 +122,7 @@ int main () {
 					temp=temp - Mesh_Height;
 					z_numb++;
 				}
-				
+				double test_top;
 				temp=z_top;
 				if (z_numb > 1) {
 					z_elvs.resize(z_numb+1);
@@ -130,27 +130,34 @@ int main () {
 						z_elvs[n]=temp;
 						temp= temp - Mesh_Height;
 					}
+					test_top=z_elvs[z_numb+1];
 					//#!# Add Print RPP_FULL function
+				} else{
+					test_top=z_top;
 				}
 				
 				//find upper height of voided region
-				while (z_bottom > bot_isect-Mesh_Height) {
-					z_bottom = z_bottom + Mesh_Height;
+				double test_bottom=z_bottom;
+				while (test_bottom > bot_isect-Mesh_Height) {
+					test_bottom = test_bottom + Mesh_Height;
 				}
 				
 				// Test intersecting region
-				z_top=z_elvs[z_numb+1];
-				temp=z_bottom;
+				
+				temp=test_bottom;
 				vector <double> test_elvs;
 				test_elvs.resize(scint1.getZMesh()+1);
-				test_elvs[0]=z_bottom;
+				test_elvs[0]=test_bottom;
 				int n=0;
 				double Total_Vol=Mesh_Height*(scint1.getYLength()/scint1.getYMesh())*(scint1.getXLength()/(2*scint1.getYMesh()));
 				double testHeight,test_Xlen,test_Ylen,test_Vol;
-				while (temp > z_top) {
+				cout<<temp<<", "<<i<<", "<<j<<", Line 151 "<<test_top<<endl;
+				while (temp > test_top) {
+					cout<<temp<<", "<<i<<", "<<j<<endl;
 					temp = temp + Mesh_Height;
-					if (temp < z_isect[2]){
-						if (temp < z_isect[1]){
+					if (temp < sorted_isect[2]){
+						cout<<", Got 2 line 154 ";
+						if (temp < sorted_isect[1]){
 							// test using volume of tetrahedron
 							testHeight=temp-bot_isect;
 							if(sorted_isect[0]==z_isect[0]){
@@ -192,6 +199,7 @@ int main () {
 							}
 						}
 						else {
+							cout<<", Got 2 line 197 ";
 							// test using frustrum of tetrahedron
 							testHeight=temp-bot_isect;
 							double A1,A2,test_Xlen2,test_Ylen2;
@@ -233,7 +241,7 @@ int main () {
 							}
 
 							if (test_Vol < 0.05*Total_Vol){
-								//Too small of a volume
+								cout<<"Too small of a volume";
 								continue;
 							} else{
 								n++;
@@ -244,10 +252,18 @@ int main () {
 						n++;
 						test_elvs[n]=temp; 
 					}
+				cout<<", Got 2 line 247";
 				}
 				
 
 
+
+
+
+			} else { cout<<"Do nothing!!"<<endl;			
+			} //part is null do nothing	
+		}
+	}
 
 // **************** Start of printing function  ********************************************8
 // This section does two things.
@@ -263,9 +279,6 @@ int main () {
 				//cout<<", "<<z_numb_INT<<", "<<S1Mesh[i][j].getPT()<<endl<<endl;
 
 
-			} else {} //part is null do nothing	
-		}
-	}
 	return 0;
 }
 
