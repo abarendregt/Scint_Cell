@@ -8,7 +8,7 @@
 #include "MeshScintillator.h"
 #include "Scintillator.h"
 #include "Sphereisect.h"
-//#include "PrintCommands.h"
+#include "PrintCommands.h"
 using namespace std;
 
 
@@ -44,16 +44,13 @@ int main () {
 	SetMeshBoundary(Row, Col, S1Mesh, scint1);
 	
 //Assign proper part type to MeshScintillator
-/************************************************************************** 
- This function assumes the sphere has the same 'x' and 'y' vertex as the scintillator. 
- If this is not the case, then this test may fail.  Consider adding more tests at a later time.
-
- Also assumed is that the sphere vertex is lower than the scintillator.
-****************************************************************************/ 
-
-// Assign Part type to Scintillator
+	/************************************************************************** 
+	 This function assumes the sphere has the same 'x' and 'y' vertex as the scintillator. 
+	 If this is not the case, then this test may fail.  Consider adding more tests at a later time.
+	
+	 Also assumed is that the sphere vertex is lower than the scintillator.
+	****************************************************************************/ 
 	int BlankNumb = scint1.getYMesh()/2-1;  //This is the maximum number of null cells
-
 	for (i=0;i<Row;++i){	
 		for (j=0;j<Col;++j) {
 			if (j+1 <= abs(BlankNumb) ||  j > Col-abs(BlankNumb)-1) {
@@ -91,20 +88,20 @@ int main () {
 			if ((S1Mesh[i][j].getPT() == Tri_Plain) || (S1Mesh[i][j].getPT() == RPP_Plain)){ 		
 				//Print TRI_plain or RPP_plain!!!
 				cout<<"line 87"<<endl;
-				PrintFullPart(i,j,S1Mesh, z_elvs, scint1.getZMesh()+1, scint1.getName()); 
+				PrintFullPart(i,j,S1Mesh, z_elvs, scint1.getZMesh(), scint1.getName()); 
 			} 
 			else if ((S1Mesh[i][j].getPT() == Tri_Isect) || (S1Mesh[i][j].getPT() == RPP_Isect)) {  
 
 				DefineIsects(i, j, S1Mesh, sphere1, z_isect);
 				if ((z_isect[0]!=z_isect[0])||(z_isect[1]!=z_isect[1])||(z_isect[2]!=z_isect[2])||(z_isect[3]!=z_isect[3])){
 					cout<<"line 106"<<endl;
-					PrintIsectPart(i,j,S1Mesh,z_elvs,scint1.getZMesh()+1, scint1.getName()); 	
+					PrintIsectPart(i,j,S1Mesh,z_elvs,scint1.getZMesh(), scint1.getName()); 	
 					continue; // No voided regions. Print TRI_isect or RPP_isect
 				}  
 				if 
 				((z_isect[0]<0)||(z_isect[1]<0)||(z_isect[2]<0)||(z_isect[3]<0)){
 					cout<<"line 114"<<endl;
-					PrintIsectPart(i,j,S1Mesh,z_elvs,scint1.getZMesh()+1, scint1.getName());
+					PrintIsectPart(i,j,S1Mesh,z_elvs,scint1.getZMesh(), scint1.getName());
 					continue; // No voided regions. Print TRI_isect or RPP_isect
 				}  
 			
@@ -118,46 +115,57 @@ int main () {
 				double top_isect=sorted_isect[3];
 				double bot_isect=sorted_isect[0];
 				int z_numb=0;
-
+				vector <double> test_elvs;
+				test_elvs.resize(scint1.getZMesh()+1);
+				test_elvs[0]=bot_isect;
 				//number of full RPPs
 				double temp=z_top;
-				while (z_top < top_isect){		
+				while (temp > top_isect){		
 					temp=temp - Mesh_Height;
 					z_numb++;
 				}
 				double test_top;
 				temp=z_top;
 				if (z_numb > 1) {
-					z_elvs.resize(z_numb+1);
-					for (int n=0;i<=z_numb;n++){
-						z_elvs[n]=temp;
+					cout<<"line 130, "<<S1Mesh[i][j].getxMin()<<", "<<S1Mesh[i][j].getyMin()<<", "<<z_numb<<", "<<top_isect<<", "<<z_top<<endl;
+					test_elvs.resize(z_numb);
+					for (int n=z_numb;n>=0;--n){
+						cout<<"OK_n="<<n<<endl;
+						test_elvs[n]=temp;
 						temp= temp - Mesh_Height;
 					}
-					test_top=z_elvs[z_numb+1];
-					cout<<"line 140"<<endl;
-					PrintFullPart(i,j,S1Mesh, z_elvs, z_numb+1, scint1.getName());
+					cout<<"OK_2"<<endl;
+					test_top=test_elvs[0];
+					cout<<"line 137"<<endl;
+					PrintFullPart(i,j,S1Mesh, test_elvs, z_numb, scint1.getName());
 				} 
 				else{
+					cout<<"line 141, "<<i<<", "<<j<<", "<<z_numb<<", "<<top_isect<<", "<<z_top<<endl;
 					test_top=z_top;
 				}
 				
 				//find upper height of voided region
 				double test_bottom = z_bottom;
-				while (test_bottom > bot_isect-Mesh_Height) {
+				while (test_bottom < bot_isect-Mesh_Height) {
 					test_bottom = test_bottom + Mesh_Height;
 				}
 				
+				z_numb=0;
+				temp=test_bottom;
+				while (temp < test_top){		
+					temp=temp + Mesh_Height;
+					z_numb++;
+				}
+				test_elvs.resize(z_numb);
 				// Test intersecting region
 				temp=test_bottom;
-				vector <double> test_elvs;
-				test_elvs.resize(scint1.getZMesh()+1);
 				test_elvs[0]=test_bottom;
 				int n=0;
 				double Total_Vol=Mesh_Height*(scint1.getYLength()/scint1.getYMesh())*(scint1.getXLength()/(2*scint1.getYMesh()));
 				double testHeight,test_Vol;
 
-				while (temp > test_top) {
-					cout<<temp<<", "<<i<<", "<<j<<endl;
+				while (temp < test_top) {
+					cout<<temp<<", "<<S1Mesh[i][j].getxMin()<<", "<<S1Mesh[i][j].getyMin()<<", "<<test_top<<endl;
 					temp = temp + Mesh_Height;
 					if (temp < sorted_isect[2]){
 						if (temp < sorted_isect[1]){
@@ -166,10 +174,12 @@ int main () {
 							test_Vol=FindTetraVol(sorted_isect,z_isect,i,j,S1Mesh,sphere1,temp, testHeight); 
 							
 							if (test_Vol < 0.05*Total_Vol){
+								cout<<"Too small of a volume"<<endl;
 								continue; //Too small of a volume
 							} else{
 								n++;
 								test_elvs[n]=temp; 
+								cout<<"line182 n="<<n<<endl;
 							}
 						} else {
 							// test using frustrum of tetrahedron
@@ -177,19 +187,22 @@ int main () {
 							test_Vol=FindFrustumTetra(sorted_isect,z_isect,i,j,S1Mesh,sphere1,temp, testHeight); 
 
 							if (test_Vol < 0.05*Total_Vol){
+								cout<<"Too small of a volume"<<endl;
 								continue; //Too small of a volume
 							} else{
 								n++;
 								test_elvs[n]=temp; 
+								cout<<"line194 n="<<n<<endl;
 							}						
 						}
 					} else {
 						n++;
 						test_elvs[n]=temp; 
+						cout<<"line199 n="<<n<<endl;
 					}
 				}
 				cout<<"line 266"<<endl;
-				PrintIsectPart(i,j,S1Mesh,test_elvs,n+1, scint1.getName()); //Add part type being used later#!#!!!)
+				PrintIsectPart(i,j,S1Mesh,test_elvs,n, scint1.getName()); 
 
 			} else {	//part is null do nothing	
 			} 
@@ -275,6 +288,72 @@ double FindTetraVol(double sorted_isect[],double z_isect[],int i, int j,vector <
 	return test_Vol;
 }
 
+void PrintIsectPart(int i, int j,vector < vector<MeshScintillator > >& S1Mesh, vector <double>& z_elvs, int mesh_numb, string PartName){
+	
+	ofstream GEOblock, LATblock, GATblock;
+	
+	if (S1Mesh[i][j].getPT()==RPP_Isect){
+		//GEO block	
+		GEOblock.open ("GEOinp.txt", ios::out | ios::app );
+		if (GEOblock.is_open()) { 
+			GEOblock<<"'"<<PartName<<"_"<<i+1<<j+1<<"'  'ag_sphrpp10' /"<<endl;
+			GEOblock<<S1Mesh[i][j].getxMin()<<", "<<S1Mesh[i][j].getxMax();
+			GEOblock<<", "<<S1Mesh[i][j].getyMin()<<", "<<S1Mesh[i][j].getyMax()<<", ";
+			for (int tmp=mesh_numb; tmp>=1; tmp--){
+				GEOblock<<z_elvs[tmp]<<", ";
+			}
+			GEOblock<<z_elvs[0]<<" /"<<endl;
+			GEOblock<<"'NULL' /"<<endl;
+		} else {
+			cout<<"Error in opening GEOinp.txt file"<<endl;
+		}
+		GEOblock.close();
+	
+		//LAT block
+		LATblock.open ("LATinp.txt", ios::out | ios::app );
+		if (LATblock.is_open()) { 
+			LATblock<<"&"<<PartName<<"-"<<i+1<<"x"<<j+1<<"_N01:1"<<" '"<<PartName<<"_"<<i+1<<j+1<<"' /"<<endl;
+			LATblock<<"0,0,0,0 /"<<endl; //#!# Add in sphere element
+		} else { 		
+			cout<<"Error in opening LATinp.txt file"<<endl;
+		}
+		LATblock.close();
+
+		//GAT block
+		GATblock.open ("GATinp.txt", ios::out | ios::app );
+		if (GATblock.is_open()) { 
+			for (int tmp=0; tmp>=mesh_numb; ++tmp){
+				GATblock<<"'"<<PartName<<"-"<<i+1<<"x"<<j+1<<"_N01:1."<<tmp<<"'  1=scint 2=2.0 10=0 /"<<endl;
+			}
+		} else { 		
+			cout<<"Error in opening GATinp.txt file"<<endl;
+		}
+		GATblock.close();
+	}
+}
+
+void PrintFullPart(int i, int j,vector < vector<MeshScintillator > >& S1Mesh, vector <double>& z_elvs, int mesh_numb, string PartName){
+	
+//	ofstream GEOblock, LATblock, GATblock;
+//	GEOblock.open ("GEOinp.txt", ios::out | ios::app );
+//	if (GEOblock.is_open()) { 
+		cout<<"'"<<PartName<<"_"<<i+1<<j+1<<"'  'ag_rpp10' /"<<endl;
+		cout<<S1Mesh[i][j].getxMin()<<", "<<S1Mesh[i][j].getxMax();
+		cout<<", "<<S1Mesh[i][j].getyMin()<<", "<<S1Mesh[i][j].getyMax()<<", ";
+		for (mesh_numb; mesh_numb>=1; mesh_numb--){
+			cout<<z_elvs[mesh_numb]<<", ";
+		}
+		cout<<z_elvs[0]<<" /"<<endl;
+		cout<<"'NULL' /"<<endl;
+//	} else {
+//		cout<<"Error in opening GEOinp.txt file"<<endl;
+//	}
+//	GEOblock.close();
+
+	cout<<"LAT"<<endl;
+	cout<<"&"<<PartName<<"-"<<i+1<<"x"<<j+1<<"_N01:1"<<" '"<<PartName<<"_"<<i+1<<j+1<<"' /"<<endl<<endl;
+}
+
 void DefineIsects(int i, int j,vector< vector<MeshScintillator > >& S1Mesh, Sphereisect sphere1, double z_isect[]){
 	z_isect[0]=FindSpherePoint(sphere1.getRadius(),S1Mesh[i][j].getxMax()-sphere1.getXVert(), \
 					S1Mesh[i][j].getyMax()-sphere1.getYVert()) +sphere1.getZVert();  //Fix for arrays 1,2 and 3
@@ -285,41 +364,6 @@ void DefineIsects(int i, int j,vector< vector<MeshScintillator > >& S1Mesh, Sphe
 	z_isect[3]=sqrt( sphere1.getRadius()*sphere1.getRadius() - pow(S1Mesh[i][j].getxMin()-sphere1.getXVert(),2) \
 					- pow(S1Mesh[i][j].getyMin()-sphere1.getYVert(),2) ) +sphere1.getZVert();
 
-				//cout<<z_isect[0]<<", "<<z_isect[1]<<", "<<z_isect[2]<<", "<<z_isect[3]<<endl;
-}
-
-
-void PrintIsectPart(int i, int j,vector < vector<MeshScintillator > >& S1Mesh, vector <double>& z_elvs, int mesh_numb, string PartName){
-	
-	cout<<"GEO, "<<mesh_numb<<endl;
-	cout<<"'"<<PartName<<"_"<<i+1<<j+1<<"'  'ag_sphrpp10' /"<<endl;
-	cout<<S1Mesh[i][j].getxMin()<<", "<<S1Mesh[i][j].getxMax();
-	cout<<", "<<S1Mesh[i][j].getyMin()<<", "<<S1Mesh[i][j].getyMax()<<", ";
-	for (mesh_numb; mesh_numb>1; mesh_numb--){
-		cout<<z_elvs[mesh_numb]<<", ";
-	}
-	cout<<z_elvs[0]<<" /"<<endl;
-	cout<<"'NULL' /"<<endl<<"/"<<endl;
-	
-	cout<<"LAT"<<endl;
-	cout<<"&"<<PartName<<"-"<<i+1<<"x"<<j+1<<"_N01:1"<<" '"<<PartName<<"_"<<i+1<<j+1<<"' /"<<endl;
-}
-
-
-void PrintFullPart(int i, int j,vector < vector<MeshScintillator > >& S1Mesh, vector <double>& z_elvs, int mesh_numb, string PartName){
-	
-	cout<<"GEO, "<<mesh_numb<<endl;
-	cout<<"'"<<PartName<<"_"<<i+1<<j+1<<"'  'ag_rpp10' /"<<endl;
-	cout<<S1Mesh[i][j].getxMin()<<", "<<S1Mesh[i][j].getxMax();
-	cout<<", "<<S1Mesh[i][j].getyMin()<<", "<<S1Mesh[i][j].getyMax()<<", ";
-	for (mesh_numb; mesh_numb>1; mesh_numb--){
-		cout<<z_elvs[mesh_numb]<<", ";
-	}
-	cout<<z_elvs[0]<<" /"<<endl;
-	cout<<"'NULL' /"<<endl<<"/"<<endl;
-	
-	cout<<"LAT"<<endl;
-	cout<<"&"<<PartName<<"-"<<i+1<<"x"<<j+1<<"_N01:1"<<" '"<<PartName<<"_"<<i+1<<j+1<<"' /"<<endl<<endl;
 }
 
 double FindSpherePoint(double r, double dim1, double dim2) {
