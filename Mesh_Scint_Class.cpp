@@ -16,7 +16,7 @@ void AssignTriPT(int i, int j,vector< vector<MeshScintillator > >& S1Mesh, Scint
 void AssignRppPT(int i, int j,vector< vector<MeshScintillator > >& S1Mesh, Scintillator scint1, Sphereisect sphere1);
 void bubbleSort(double arr[], int n);
 double FindSpherePoint(double r, double x_loc, double y_loc);
-void PrintPart(int i, int j,vector < vector<MeshScintillator > >& S1Mesh, vector <double>& z_elvs, int mesh_numb, Scintillator s);
+void PrintPart(int i, int j,vector < vector<MeshScintillator > >& S1Mesh, vector <double>& z_elvs, int mesh_numb, Scintillator s, Sphereisect sphere1);
 void DefineIsects(int i, int j,vector< vector<MeshScintillator > >& S1Mesh, Sphereisect sphere1, double z_isect[]);
 double FindTetraVol(double sorted_isect[],double z_isect[],int i, int j,vector < vector<MeshScintillator > >& S1Mesh,Sphereisect \
 							 sphere1,double temp, double testHeight);
@@ -86,20 +86,20 @@ int main () {
 			if ((S1Mesh[i][j].getPT() == Tri_Plain) || (S1Mesh[i][j].getPT() == RPP_Plain)){ 		
 				//Print TRI_plain or RPP_plain!!!
 				cout<<"line 87"<<endl;
-				PrintPart(i,j,S1Mesh,z_elvs,scint1.getZMesh(), scint1); 
+				PrintPart(i,j,S1Mesh,z_elvs,scint1.getZMesh(), scint1, sphere1); 
 			} 
 			else if ((S1Mesh[i][j].getPT() == Tri_Isect) || (S1Mesh[i][j].getPT() == RPP_Isect)) {  
 
 				DefineIsects(i, j, S1Mesh, sphere1, z_isect);
 				if ((z_isect[0]!=z_isect[0])||(z_isect[1]!=z_isect[1])||(z_isect[2]!=z_isect[2])||(z_isect[3]!=z_isect[3])){
 					cout<<"line 106"<<endl;
-					PrintPart(i,j,S1Mesh,z_elvs,scint1.getZMesh(), scint1); 	
+					PrintPart(i,j,S1Mesh,z_elvs,scint1.getZMesh(), scint1, sphere1); 	
 					continue; // No voided regions. Print TRI_isect or RPP_isect
 				}  
 				if 
 				((z_isect[0]<0)||(z_isect[1]<0)||(z_isect[2]<0)||(z_isect[3]<0)){
 					cout<<"line 114"<<endl;
-					PrintPart(i,j,S1Mesh,z_elvs,scint1.getZMesh(), scint1);
+					PrintPart(i,j,S1Mesh,z_elvs,scint1.getZMesh(), scint1, sphere1);
 					continue; // No voided regions. Print TRI_isect or RPP_isect
 				}  
 			
@@ -135,7 +135,7 @@ int main () {
 					//cout<<"OK_2"<<endl;
 					test_top=test_elvs[0];
 					//cout<<"line 137"<<endl;
-					PrintPart(i,j,S1Mesh,test_elvs,z_numb, scint1); 
+					PrintPart(i,j,S1Mesh,test_elvs,z_numb, scint1, sphere1); 
 				} 
 				else{
 					//cout<<"line 141, "<<i<<", "<<j<<", "<<z_numb<<", "<<top_isect<<", "<<z_top<<endl;
@@ -200,7 +200,7 @@ int main () {
 					}
 				}
 				//cout<<"line 266"<<endl;
-				PrintPart(i,j,S1Mesh,test_elvs,n, scint1); 
+				PrintPart(i,j,S1Mesh,test_elvs,n, scint1, sphere1); 
 
 			} else {	//part is null do nothing	
 			} 
@@ -290,7 +290,7 @@ double FindTetraVol(double sorted_isect[],double z_isect[],int i, int j,vector <
 	return test_Vol;
 }
 
-void PrintPart(int i, int j,vector < vector<MeshScintillator > >& S1Mesh, vector <double>& z_elvs, int mesh_numb, Scintillator s){
+void PrintPart(int i, int j,vector < vector<MeshScintillator > >& S1Mesh, vector <double>& z_elvs, int mesh_numb, Scintillator s, Sphereisect sphere1){
 	
 	ofstream GEOblock, LATblock, GATblock;
 	
@@ -298,14 +298,15 @@ void PrintPart(int i, int j,vector < vector<MeshScintillator > >& S1Mesh, vector
 		//GEO block	
 		GEOblock.open ("GEOinp.txt", ios::out | ios::app );
 		if (GEOblock.is_open()) { 
-			GEOblock<<"'"<<s.getName()<<"_"<<i+1<<j+1<<"'  'ag_sphrpp10' /"<<endl;
+			GEOblock<<"'"<<s.getName()<<"_"<<i+1<<j+1<<"'  'ag_RPPSPH10_"<<mesh_numb<<"' /"<<endl;
+                        GEOblock<<sphere1.getXVert()<<", "<<sphere1.getYVert()<<", "<<sphere1.getZVert()<<", "<<sphere1.getRadius()<<", ";
 			GEOblock<<S1Mesh[i][j].getxMin()<<", "<<S1Mesh[i][j].getxMax();
 			GEOblock<<", "<<S1Mesh[i][j].getyMin()<<", "<<S1Mesh[i][j].getyMax()<<", ";
+                        GEOblock<<z_elvs[0];
 			for (int tmp=mesh_numb; tmp>=1; tmp--){
-				GEOblock<<z_elvs[tmp]<<", ";
+				GEOblock<<", "<<z_elvs[tmp]-z_elvs[0];
 			}
-			GEOblock<<z_elvs[0]<<" /"<<endl;
-			GEOblock<<"'NULL' /"<<endl;
+			GEOblock<<" /"<<endl<<"'NULL' /"<<endl;
 		} else {
 			cout<<"Error in opening GEOinp.txt file"<<endl;
 		}
@@ -324,7 +325,7 @@ void PrintPart(int i, int j,vector < vector<MeshScintillator > >& S1Mesh, vector
 		//GAT block
 		GATblock.open ("GATinp.txt", ios::out | ios::app );
 		if (GATblock.is_open()) { 
-			for (int tmp=0; tmp<=mesh_numb; ++tmp){
+			for (int tmp=1; tmp<=mesh_numb; ++tmp){
 				GATblock<<"'"<<s.getName()<<"-"<<i+1<<"x"<<j+1<<"_N01:1."<<tmp<<"'  1=scint 2=2.0 10=0 /"<<endl;
 			}
 		} else { 		
@@ -339,7 +340,7 @@ void PrintPart(int i, int j,vector < vector<MeshScintillator > >& S1Mesh, vector
 			GEOblock<<"'"<<s.getName()<<"_"<<i+1<<j+1<<"'  'ag_rpp10' /"<<endl;
 			GEOblock<<S1Mesh[i][j].getxMin()<<", "<<S1Mesh[i][j].getxMax();
 			GEOblock<<", "<<S1Mesh[i][j].getyMin()<<", "<<S1Mesh[i][j].getyMax()<<", ";
-			GEOblock<<z_elvs[1]<<", "<<z_elvs[0]<<" /"<<endl;
+			GEOblock<<z_elvs[0]<<", "<<z_elvs[1]-z_elvs[0]<<" /"<<endl;
 			GEOblock<<"'NULL' /"<<endl;
 		} else {
 			cout<<"Error in opening GEOinp.txt file"<<endl;
@@ -350,6 +351,7 @@ void PrintPart(int i, int j,vector < vector<MeshScintillator > >& S1Mesh, vector
 		LATblock.open ("LATinp.txt", ios::out | ios::app );
 		if (LATblock.is_open()) { 
 			LATblock<<"&"<<s.getName()<<"-"<<i+1<<"x"<<j+1<<"_N01:1-"<<mesh_numb<<" '"<<s.getName()<<"_"<<i+1<<j+1<<"' /"<<endl;
+			LATblock<<"0,0,0,0,"<<endl;
 			for (int tmp=1;tmp<mesh_numb; ++tmp){
 				LATblock<<"0,0,"<<z_elvs[tmp]<<",0";
 				if (tmp+1 != mesh_numb){
@@ -365,7 +367,7 @@ void PrintPart(int i, int j,vector < vector<MeshScintillator > >& S1Mesh, vector
 		//GAT block
 		GATblock.open ("GATinp.txt", ios::out | ios::app );
 		if (GATblock.is_open()) { 
-			for (int tmp=0; tmp<=mesh_numb; ++tmp){
+			for (int tmp=1; tmp<=mesh_numb; ++tmp){
 				GATblock<<"'"<<s.getName()<<"-"<<i+1<<"x"<<j+1<<"_N01:"<<tmp<<".1'  1=scint 2=2.0 10=0 /"<<endl;
 			}
 		} else { 		
@@ -393,8 +395,8 @@ void PrintPart(int i, int j,vector < vector<MeshScintillator > >& S1Mesh, vector
 					Yvect=(S1Mesh[i][j].getyMax()-S1Mesh[i][j].getyMin());
 					GEOblock<<S1Mesh[i][j].getyMin()<<", ";
 				} else {
-					Yvect=-1*(S1Mesh[i][j].getxMax()-S1Mesh[i][j].getxMin());
-					GEOblock<<S1Mesh[i][j].getxMax()<<", ";
+					Yvect=-1*(S1Mesh[i][j].getyMax()-S1Mesh[i][j].getyMin());
+					GEOblock<<S1Mesh[i][j].getyMax()<<", ";
 				}
 				GEOblock<<", "<<Xvect<<", 0., 0."<<Yvect<<" /"<<endl;
 				GEOblock<<"'NULL' /"<<endl;
@@ -433,7 +435,7 @@ void PrintPart(int i, int j,vector < vector<MeshScintillator > >& S1Mesh, vector
 		GEOblock.open ("GEOinp.txt", ios::out | ios::app );
 		if (GEOblock.is_open()) { 
 			for(int tmp=0; tmp<mesh_numb; ++tmp){			
-				GEOblock<<"'"<<s.getName()<<"_"<<i+1<<j+1<<"_"<<tmp+1<<"'  'ag_raw10' /"<<endl;//#!# Add in sphere element
+				GEOblock<<"'"<<s.getName()<<"_"<<i+1<<j+1<<"_"<<tmp+1<<"'  'ag_raw10' /"<<endl;
 				GEOblock<<"0.,0., "<<z_elvs[tmp]+s.getZVert()<<", "<<z_elvs[tmp+1]-z_elvs[tmp]<<", ";	//#!# get mesh height issue resolved, update accordingly	
 				if ( j+1 < s.getYMesh() ) {
 					Xvect=-1*(S1Mesh[i][j].getxMax()-S1Mesh[i][j].getxMin());
@@ -447,10 +449,10 @@ void PrintPart(int i, int j,vector < vector<MeshScintillator > >& S1Mesh, vector
 					Yvect=(S1Mesh[i][j].getyMax()-S1Mesh[i][j].getyMin());
 					GEOblock<<S1Mesh[i][j].getyMin()<<", ";
 				} else {
-					Yvect=-1*(S1Mesh[i][j].getxMax()-S1Mesh[i][j].getxMin());
-					GEOblock<<S1Mesh[i][j].getxMax()<<", ";
+					Yvect=-1*(S1Mesh[i][j].getyMax()-S1Mesh[i][j].getyMin());
+					GEOblock<<S1Mesh[i][j].getyMax()<<", ";
 				}
-				GEOblock<<", "<<Xvect<<", 0., 0."<<Yvect<<" /"<<endl;
+				GEOblock<<Xvect<<", 0., 0., "<<Yvect<<" /"<<endl;
 				GEOblock<<"'NULL' /"<<endl;
 			}
 		} else {
