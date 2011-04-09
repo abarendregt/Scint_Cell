@@ -10,6 +10,8 @@ class Scintillator {
 	double xLength, yLength, zLength, xVert, yVert, zVert;
 	
 	vector<vector<MeshRegion > > meshRegions;
+	
+	Sphereisect sphere1;
 
 	public:
 	Scintillator();
@@ -86,35 +88,6 @@ Scintillator::getMaxRowSize() {
   return yMesh;
 }
 
-Scintillator::classifyMeshRegion() {
-    int maxRowSize = getMaxRowSize();
-    int maxColSize = getMaxColumnSize();
-	
-    //Assign proper part type to MeshScintillator
-	/************************************************************************** 
-	 This function assumes the sphere has the same 'x' and 'y' vertex as the scintillator. 
-	 If this is not the case, then this test may fail.  Consider adding more tests at a later time.
-	
-	 Also assumed is that the sphere vertex is lower than the scintillator.
-	****************************************************************************/ 
-	int nullCellMax = yMesh/2-1;  //This is the maximum number of null cells
-	for (i=0;i<maxRowSize;++i){	
-		for (j=0;j<maxColSize;++j) {
-			if (j+1 <= abs(nullCellMax) ||  j > maxColSize-abs(nullCellMax)-1) {
-				meshRegions[i][j] = NULL;  
-			} else if (j+1 == abs(nullCellMax)+1 ||  j == maxColSize-abs(nullCellMax)-1) {
-					AssignTriPT(i,j,S1Mesh,scint1,sphere1);
-			} else { 
-					AssignRppPT(i,j,S1Mesh,scint1,sphere1);
-			}
-		}
-		nullCellMax--;
-		if (i==maxRowSize/2-1) {
-			nullCellMax=0;
-		}
-	}
-}
-
 void setMeshBoundary(int maxRowSize, int maxColSize) {
 	double yMeshLth=yLength/yMesh;
 	double xMeshLth=xLength/(2*yMesh);
@@ -138,11 +111,63 @@ void setMeshBoundary(int maxRowSize, int maxColSize) {
 			xmax = xVert + xLength/2;
 			}
 			
-      RectangularParallelpiped* r = new RectangularParallelpiped(i, j, xmin, xmax, ymin, ymax);
+            RectangularParallelpiped* r = new RectangularParallelpiped(i, j, xmin, xmax, ymin, ymax);
 
 			meshRegions[i][j] = r;
 		}
 	}
+}
+
+Scintillator::classifyMeshRegion() {
+    int maxRowSize = getMaxRowSize();
+    int maxColSize = getMaxColumnSize();
+	
+    //Assign proper part type to MeshScintillator
+	/************************************************************************** 
+	 This function assumes the sphere has the same 'x' and 'y' vertex as the scintillator. 
+	 If this is not the case, then this test may fail.  Consider adding more tests at a later time.
+	
+	 Also assumed is that the sphere vertex is lower than the scintillator.
+	****************************************************************************/ 
+	int nullCellMax = yMesh/2-1;  //This is the maximum number of null cells
+	for (i=0;i<maxRowSize;++i){	
+		for (j=0;j<maxColSize;++j) {
+			if (j+1 <= abs(nullCellMax) ||  j > maxColSize-abs(nullCellMax)-1) {
+				meshRegions[i][j] = NULL;  
+			} else if (j+1 == abs(nullCellMax)+1 ||  j == maxColSize-abs(nullCellMax)-1) {
+			    if (isIntersected(i,j)) {
+			        // TODO: Set xmin, xmax, ymin, ymax, etc..
+                    meshRegions[i][j] = new IntersectedRectangularParallelpiped();
+		        }
+			} else { 
+			    if (isIntersected(i,j)) {
+    		        // TODO: Set xmin, xmax, ymin, ymax, etc..
+					meshRegions[i][j] = new IntersectedTrianguloid();
+				}
+			}
+		}
+		nullCellMax--;
+		if (i==maxRowSize/2-1) {
+			nullCellMax=0;
+		}
+	}
+}
+
+void isIntersected(int i, int j){
+	if (sphere1.getRadius() > sqrt( pow(S1Mesh[i][j].getxMin()-sphere1.getXVert(),2) + pow(S1Mesh[i][j].getyMin()  \
+			-sphere1.getYVert(),2) + pow(scint1.getZVert()-sphere1.getZVert(),2) ) ) {
+		return true;
+	} else if (sphere1.getRadius() > sqrt( pow(S1Mesh[i][j].getxMax()-sphere1.getXVert(),2) + pow(S1Mesh[i][j].getyMin() \
+			-sphere1.getYVert(),2)  + pow(scint1.getZVert()-sphere1.getZVert(),2) ) ) {
+		return true;
+	} else if (sphere1.getRadius() > sqrt( pow(S1Mesh[i][j].getxMin()-sphere1.getXVert(),2) + pow(S1Mesh[i][j].getyMax() \
+			-sphere1.getYVert(),2) + pow(scint1.getZVert()-sphere1.getZVert(),2) ) ) {
+		return true;
+	} else if (sphere1.getRadius() > sqrt( pow(S1Mesh[i][j].getxMax()-sphere1.getXVert(),2) + pow(S1Mesh[i][j].getyMax() \
+			-sphere1.getYVert(),2) + pow(scint1.getZVert()-sphere1.getZVert(),2) ) ) {
+		return true;
+	}
+    return false;
 }
 
 
