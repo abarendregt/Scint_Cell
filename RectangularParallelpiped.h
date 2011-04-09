@@ -1,10 +1,11 @@
 #include <string>
 #include <sstream>
 #include <iostream>
+#include "MeshRegion.h"
 
 using namespace std;
 
-class RectangularParallelpiped {
+class RectangularParallelpiped: public MeshRegion {
   double xMin, xMax, yMin, yMax, elevation, height;
   
   int xLoc, yLoc;
