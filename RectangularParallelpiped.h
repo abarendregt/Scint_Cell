@@ -5,33 +5,33 @@
 using namespace std;
 
 class RectangularParallelpiped {
-	double xMin, xMax, yMin, yMax, elevation, height;
-	
+  double xMin, xMax, yMin, yMax, elevation, height;
+  
   int xLoc, yLoc;
   
   string PART_NAME;
   string PART_TYPE;
-	
-	public:
-
-	//This section defines each member of the class
+  
+  public:
+  
+  //This section defines each member of the class
   void setxLoc(int x) {this->xLoc = x;}
   void setyLoc(int y) {this->yLoc = y;}
-	void setxMin(double xMn) {this->xMin = xMn;}
-	void setxMax(double xMx) {this->xMax = xMx;}	
-	void setyMin(double yMn) {this->yMin = yMn;}
-	void setyMax(double yMx) {this->yMax = yMx;}
+  void setxMin(double xMn) {this->xMin = xMn;}
+  void setxMax(double xMx) {this->xMax = xMx;} 
+  void setyMin(double yMn) {this->yMin = yMn;}
+  void setyMax(double yMx) {this->yMax = yMx;}
   void setHeight(double h) {this->height = h;}
   void setElevation(double e) {this->elevation = elevation;}
+    
   
-
-	//This section calls each member of the class for use
+  //This section calls each member of the class for use
   int getxLoc(void) {return this->xLoc;}
   int getyLoc(void) {return this->yLoc;}
-	double getxMin(void) {return this->xMin;}
-	double getxMax(void) {return this->xMax;}
-	double getyMin(void) {return this->yMin;}
-	double getyMax(void) {return this->yMax;}
+  double getxMin(void) {return this->xMin;}
+  double getxMax(void) {return this->xMax;}
+  double getyMin(void) {return this->yMin;}
+  double getyMax(void) {return this->yMax;}
   double getHeight(void) {return this->height;}
   double getElevation(void) {return this->elevation;}
   
@@ -50,16 +50,10 @@ class RectangularParallelpiped {
 
 
   string toGeo(void) {
-      ostringstream strs;
-      strs << "'" << PART_NAME << "_" << xLoc << yLoc << "'  '" << PART_TYPE << "' /" << endl;
-      strs << xMin << ", " << xMax << ", " << yMin << ", " << yMax<< ", " << elevation << ", " << height<<" /" << endl;
-      strs << "'NULL' /" << endl;
-      return strs.str();
-  }
-  
-  int main () {
-    RectangularParallelpiped* rect = new RectangularParallelpiped(1, 2, 1.1, 1.2, 2.1, 2.2, 3.0, 4.0);
-    cout << rect->toGeo();
-    return 0;
+    ostringstream strs;
+    strs << "'" << PART_NAME << "_" << xLoc << yLoc << "'  '" << PART_TYPE << "' /" << endl;
+    strs << xMin << ", " << xMax << ", " << yMin << ", " << yMax<< ", " << elevation << ", " << height<<" /" << endl;
+    strs << "'NULL' /" << endl;
+    return strs.str();
   }
 };
