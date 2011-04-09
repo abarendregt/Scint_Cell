@@ -27,43 +27,6 @@ int main () {
 	Scintillator scint1;
 	Sphereisect sphere1;
 
-// Analysis variables to define
-	int Col = 2*scint1.getYMesh();
-	int Row = scint1.getYMesh();
-	int i, j;
-
-//Define Meshing 2Darray
-	vector<vector<MeshScintillator > > S1Mesh;
-	S1Mesh.resize(Row);
-  	for (i = 0; i<Row;++i)
-		S1Mesh[i].resize(Col);
-
-//Define xmin, xmax, ymin, ymax
-	SetMeshBoundary(Row, Col, S1Mesh, scint1);
-	
-//Assign proper part type to MeshScintillator
-	/************************************************************************** 
-	 This function assumes the sphere has the same 'x' and 'y' vertex as the scintillator. 
-	 If this is not the case, then this test may fail.  Consider adding more tests at a later time.
-	
-	 Also assumed is that the sphere vertex is lower than the scintillator.
-	****************************************************************************/ 
-	int BlankNumb = scint1.getYMesh()/2-1;  //This is the maximum number of null cells
-	for (i=0;i<Row;++i){	
-		for (j=0;j<Col;++j) {
-			if (j+1 <= abs(BlankNumb) ||  j > Col-abs(BlankNumb)-1) {
-				S1Mesh[i][j].setPT(null);  
-			} else if (j+1 == abs(BlankNumb)+1 ||  j == Col-abs(BlankNumb)-1) {
-					AssignTriPT(i,j,S1Mesh,scint1,sphere1);
-			} else { 
-					AssignRppPT(i,j,S1Mesh,scint1,sphere1);
-			}
-		}
-		BlankNumb--;
-		if (i==Row/2-1) {
-			BlankNumb=0;
-		}
-	}
 
 // set up variables to analyze meshes
 	double Mesh_Height=scint1.getZLength()/scint1.getZMesh();
@@ -502,38 +465,6 @@ double FindSpherePoint(double r, double dim1, double dim2) {
 	double Point=sqrt( pow(r,2) - pow(dim1,2) - pow(dim2,2) );
 	return Point;
 }
-
-void SetMeshBoundary(int Row, int Col,vector< vector<MeshScintillator > >& S1Mesh, Scintillator s) {
-	double yMeshLth=s.getYLength()/s.getYMesh();
-	double xMeshLth=s.getXLength()/(2*s.getYMesh());
-	double xmin, xmax, ymin, ymax;
-
-	//define xmin, xmax, ymin and ymax based on starting location (0,0)
-	// Define the rows
-	for (int i=0;i<Row;++i){	 
-		ymax= s.getYVert() + s.getYLength()/2 -i*yMeshLth;
-		ymin=ymax-yMeshLth;
-
-		if (i==Row-1) {  //this is in place on to eliminate any rounding errors
-			ymin = s.getYVert() - s.getYLength()/2;
-		}
-
-		for (int j=0;j<Col;++j) {
-			xmin= s.getXVert()-s.getXLength()/2+j*xMeshLth;
-			xmax=xmin+xMeshLth;
-
-			if (j==Col-1) {  //this is in place on to eliminate any rounding errors
-			xmax = s.getXVert() + s.getXLength()/2;
-			}
-
-			S1Mesh[i][j].setxMin(xmin);
-			S1Mesh[i][j].setyMin(ymin);
-			S1Mesh[i][j].setxMax(xmax);
-			S1Mesh[i][j].setyMax(ymax);
-		}
-	}
-}
-
 
 void AssignTriPT(int i, int j,vector< vector<MeshScintillator > >& S1Mesh, Scintillator scint1, Sphereisect sphere1){
 	if (sphere1.getRadius() > sqrt( pow(S1Mesh[i][j].getxMin()-sphere1.getXVert(),2) + pow(S1Mesh[i][j].getyMin() \

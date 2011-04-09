@@ -3,11 +3,13 @@
 #define SCINTILLATOR_H
 using namespace std;
 #include <string>
-
+#include <vector>
 class Scintillator {
 	string name;
 	int yMesh, zmesh;
 	double xLength, yLength, zLength, xVert, yVert, zVert;
+	
+	vector<vector<MeshRegion > > meshRegions;
 
 	public:
 	Scintillator();
@@ -58,5 +60,91 @@ Scintillator::Scintillator(string name, double xLength, double yLength, double z
 	this->setYVert(yVert);
 	this->setZVert(zVert);
 }
+
+Scintillator::getMeshRegions() {
+    // Analysis variables to define
+  	int maxColSize = getMaxColumnSize();
+  	int maxRowSize = getMaxRowSize();
+  	int i, j;
+
+    //Define Meshing 2Darray
+
+  	meshRegions.resize(maxRowSize);
+	for (i = 0; i<maxRowSize;++i)
+  		meshRegions[i].resize(maxColSize);
+  
+    //Define xmin, xmax, ymin, ymax
+	setMeshBoundary(maxRowSize, maxColSize);
+    classifyMeshRegion();
+}
+
+Scintillator::getMaxColumnSize() {
+  return 2 * yMesh;
+}
+
+Scintillator::getMaxRowSize() {
+  return yMesh;
+}
+
+Scintillator::classifyMeshRegion() {
+    int maxRowSize = getMaxRowSize();
+    int maxColSize = getMaxColumnSize();
+	
+    //Assign proper part type to MeshScintillator
+	/************************************************************************** 
+	 This function assumes the sphere has the same 'x' and 'y' vertex as the scintillator. 
+	 If this is not the case, then this test may fail.  Consider adding more tests at a later time.
+	
+	 Also assumed is that the sphere vertex is lower than the scintillator.
+	****************************************************************************/ 
+	int nullCellMax = yMesh/2-1;  //This is the maximum number of null cells
+	for (i=0;i<maxRowSize;++i){	
+		for (j=0;j<maxColSize;++j) {
+			if (j+1 <= abs(nullCellMax) ||  j > maxColSize-abs(nullCellMax)-1) {
+				meshRegions[i][j] = NULL;  
+			} else if (j+1 == abs(nullCellMax)+1 ||  j == maxColSize-abs(nullCellMax)-1) {
+					AssignTriPT(i,j,S1Mesh,scint1,sphere1);
+			} else { 
+					AssignRppPT(i,j,S1Mesh,scint1,sphere1);
+			}
+		}
+		nullCellMax--;
+		if (i==maxRowSize/2-1) {
+			nullCellMax=0;
+		}
+	}
+}
+
+void setMeshBoundary(int maxRowSize, int maxColSize) {
+	double yMeshLth=yLength/yMesh;
+	double xMeshLth=xLength/(2*yMesh);
+	double xmin, xmax, ymin, ymax;
+
+	//define xmin, xmax, ymin and ymax based on starting location (0,0)
+	// Define the rows
+	for (int i=0;i<maxRowSize;++i){	 
+		ymax= yVert + yLength/2 -i*yMeshLth;
+		ymin=ymax-yMeshLth;
+
+		if (i==maxRowSize-1) {  //this is in place on to eliminate any rounding errors
+			ymin = yVert - yLength/2;
+		}
+
+		for (int j=0;j<maxColSize;++j) {
+			xmin= xVert-s.xLength/2+j*xMeshLth;
+			xmax=xmin+xMeshLth;
+
+			if (j==maxColSize-1) {  //this is in place on to eliminate any rounding errors
+			xmax = xVert + xLength/2;
+			}
+			
+      RectangularParallelpiped* r = new RectangularParallelpiped(i, j, xmin, xmax, ymin, ymax);
+
+			meshRegions[i][j] = r;
+		}
+	}
+}
+
+
 
 #endif

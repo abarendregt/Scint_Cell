@@ -10,8 +10,8 @@ class RectangularParallelpiped: public MeshRegion {
   
   int xLoc, yLoc;
   
-  string PART_NAME;
-  string PART_TYPE;
+  string PART_NAME = "Scint";;
+  string PART_TYPE = "ag_rpp10";;
   
   public:
   
@@ -35,7 +35,16 @@ class RectangularParallelpiped: public MeshRegion {
   double getyMax(void) {return this->yMax;}
   double getHeight(void) {return this->height;}
   double getElevation(void) {return this->elevation;}
-  
+
+  RectangularParallelpiped::RectangularParallelpiped(int xLoc, int yLoc, double xMin, double xMax, double yMin, double yMax) {
+    this->xLoc = xLoc;
+    this->yLoc = yLoc;
+    this->xMin = xMin;
+    this->xMax = xMax;
+    this->yMin = yMin;
+    this->yMax = yMax;
+  }
+    
   RectangularParallelpiped::RectangularParallelpiped(int xLoc, int yLoc, double xMin, double xMax, double yMin, double yMax, double height, double elevation) {
     this->xLoc = xLoc;
     this->yLoc = yLoc;
@@ -45,8 +54,6 @@ class RectangularParallelpiped: public MeshRegion {
     this->yMax = yMax;
     this->height = height;
     this->elevation = elevation;
-    this->PART_NAME = "Scint";
-    this->PART_TYPE = "ag_rpp10";
   }
 
 
