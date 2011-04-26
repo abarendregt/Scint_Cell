@@ -12,8 +12,7 @@ using namespace std;
 
 
 void SetMeshBoundary(int Row, int Col,vector< vector<MeshScintillator > >& S1Mesh, Scintillator s);
-void AssignTriPT(int i, int j,vector< vector<MeshScintillator > >& S1Mesh, Scintillator scint1, Sphereisect sphere1);
-void AssignRppPT(int i, int j,vector< vector<MeshScintillator > >& S1Mesh, Scintillator scint1, Sphereisect sphere1);
+bool CornersIntersect(int i, int j,vector< vector<MeshScintillator > >& S1Mesh, Scintillator scint1, Sphereisect sphere1);
 void bubbleSort(double arr[], int n);
 double FindSpherePoint(double r, double x_loc, double y_loc);
 void PrintPart(int i, int j,vector < vector<MeshScintillator > >& S1Mesh, vector <double>& z_elvs, int mesh_numb, Scintillator s, Sphereisect sphere1);
@@ -49,14 +48,21 @@ int main () {
 	 Also assumed is that the sphere vertex is lower than the scintillator.
 	****************************************************************************/ 
 	int BlankNumb = scint1.getYMesh()/2-1;  //This is the maximum number of null cells
+	bool IsectTest;
 	for (i=0;i<Row;++i){	
 		for (j=0;j<Col;++j) {
 			if (j+1 <= abs(BlankNumb) ||  j > Col-abs(BlankNumb)-1) {
 				S1Mesh[i][j].setPT(null);  
 			} else if (j+1 == abs(BlankNumb)+1 ||  j == Col-abs(BlankNumb)-1) {
-					AssignTriPT(i,j,S1Mesh,scint1,sphere1);
+					IsectTest=CornersIntersect(i,j,S1Mesh,scint1,sphere1);
+					if (IsectTest==true){
+						S1Mesh[i][j].setPT(Tri_Isect);
+					}
 			} else { 
-					AssignRppPT(i,j,S1Mesh,scint1,sphere1);
+					IsectTest=CornersIntersect(i,j,S1Mesh,scint1,sphere1);
+					if (IsectTest==true){
+						S1Mesh[i][j].setPT(RPP_Isect);
+					}
 			}
 		}
 		BlankNumb--;
@@ -85,20 +91,20 @@ int main () {
 		for (j=0;j<Col;++j) {
 			if ((S1Mesh[i][j].getPT() == Tri_Plain) || (S1Mesh[i][j].getPT() == RPP_Plain)){ 		
 				//Print TRI_plain or RPP_plain!!!
-				cout<<"line 87"<<endl;
+				//cout<<"line 87"<<endl;
 				PrintPart(i,j,S1Mesh,z_elvs,scint1.getZMesh(), scint1, sphere1); 
 			} 
 			else if ((S1Mesh[i][j].getPT() == Tri_Isect) || (S1Mesh[i][j].getPT() == RPP_Isect)) {  
 
 				DefineIsects(i, j, S1Mesh, sphere1, z_isect);
 				if ((z_isect[0]!=z_isect[0])||(z_isect[1]!=z_isect[1])||(z_isect[2]!=z_isect[2])||(z_isect[3]!=z_isect[3])){
-					cout<<"line 106"<<endl;
+					//cout<<"line 106"<<endl;
 					PrintPart(i,j,S1Mesh,z_elvs,scint1.getZMesh(), scint1, sphere1); 	
 					continue; // No voided regions. Print TRI_isect or RPP_isect
 				}  
 				if 
 				((z_isect[0]<0)||(z_isect[1]<0)||(z_isect[2]<0)||(z_isect[3]<0)){
-					cout<<"line 114"<<endl;
+					//cout<<"line 114"<<endl;
 					PrintPart(i,j,S1Mesh,z_elvs,scint1.getZMesh(), scint1, sphere1);
 					continue; // No voided regions. Print TRI_isect or RPP_isect
 				}  
@@ -134,11 +140,11 @@ int main () {
 					}
 					//cout<<"OK_2"<<endl;
 					test_top=test_elvs[0];
-					//cout<<"line 137"<<endl;
+					cout<<"line 137, i="<<i<<", j="<<j<<endl;
 					PrintPart(i,j,S1Mesh,test_elvs,z_numb, scint1, sphere1); 
 				} 
 				else{
-					//cout<<"line 141, "<<i<<", "<<j<<", "<<z_numb<<", "<<top_isect<<", "<<z_top<<endl;
+					cout<<"line 141, "<<i<<", "<<j<<", "<<z_numb<<", "<<top_isect<<", "<<z_top<<endl;
 					test_top=z_top;
 				}
 				
@@ -199,7 +205,7 @@ int main () {
 						//cout<<"line199 n="<<n<<endl;
 					}
 				}
-				//cout<<"line 266"<<endl;
+				cout<<"line 266, i="<<i<<", j="<<j<<endl;
 				PrintPart(i,j,S1Mesh,test_elvs,n, scint1, sphere1); 
 
 			} else {	//part is null do nothing	
@@ -381,25 +387,27 @@ void PrintPart(int i, int j,vector < vector<MeshScintillator > >& S1Mesh, vector
 		GEOblock.open ("GEOinp.txt", ios::out | ios::app );
 		if (GEOblock.is_open()) { 
 			for(int tmp=0; tmp<mesh_numb; ++tmp){			
-				GEOblock<<"'"<<s.getName()<<"_"<<i+1<<j+1<<"_"<<tmp+1<<"'  'ag_sphraw10' /"<<endl;//#!# Add in sphere element
-				GEOblock<<"0.,0."<<s.getZVert()<<", "<<z_elvs[tmp+1]-z_elvs[tmp]<<", ";	//#!# get mesh height issue resolved, update accordingly	
-				if ( j+1 < s.getYMesh() ) {
-					Xvect=-1*(S1Mesh[i][j].getxMax()-S1Mesh[i][j].getxMin());
-					GEOblock<<S1Mesh[i][j].getxMax()<<", ";
-				} else {
-					Xvect=(S1Mesh[i][j].getxMax()-S1Mesh[i][j].getxMin());
-					GEOblock<<S1Mesh[i][j].getxMin()<<", ";
-				}
-	
-				if ( i+1 <= s.getYMesh()/2 ) {
-					Yvect=(S1Mesh[i][j].getyMax()-S1Mesh[i][j].getyMin());
-					GEOblock<<S1Mesh[i][j].getyMin()<<", ";
-				} else {
-					Yvect=-1*(S1Mesh[i][j].getyMax()-S1Mesh[i][j].getyMin());
-					GEOblock<<S1Mesh[i][j].getyMax()<<", ";
-				}
-				GEOblock<<", "<<Xvect<<", 0., 0."<<Yvect<<" /"<<endl;
-				GEOblock<<"'NULL' /"<<endl;
+				GEOblock<<"'"<<s.getName()<<"_"<<i+1<<j+1<<"_"<<tmp+1<<"'  'ag_RAWSPH10' /"<<endl;//#!# Add in sphere element
+			 GEOblock<<"0.,0., "<<z_elvs[tmp]+s.getZVert()<<", "<<z_elvs[tmp+1]-z_elvs[tmp]<<", ";   //#!# get mesh height issue resolved, update accordingly        
+                                if ( j+1 < s.getYMesh() ) {
+                                        Xvect=-1*(S1Mesh[i][j].getxMax()-S1Mesh[i][j].getxMin());
+                                        GEOblock<<S1Mesh[i][j].getxMax()<<", ";
+                                } else {
+                                        Xvect=(S1Mesh[i][j].getxMax()-S1Mesh[i][j].getxMin());
+                                        GEOblock<<S1Mesh[i][j].getxMin()<<", ";
+                                }
+
+                                if ( i+1 <= s.getYMesh()/2 ) {
+                                        Yvect=(S1Mesh[i][j].getyMax()-S1Mesh[i][j].getyMin());
+                                        GEOblock<<S1Mesh[i][j].getyMin()<<", ";
+                                } else {
+                                        Yvect=-1*(S1Mesh[i][j].getyMax()-S1Mesh[i][j].getyMin());
+                                        GEOblock<<S1Mesh[i][j].getyMax()<<", ";
+                                }
+                                GEOblock<<Xvect<<", 0., 0., "<<Yvect<<", "<<sphere1.getXVert()<<", ";
+				GEOblock<<sphere1.getYVert()<<", "<<sphere1.getZVert()<<", ";
+				GEOblock<<sphere1.getRadius()<<" /"<<endl;
+                                GEOblock<<"'NULL' /"<<endl;	
 			}
 		} else {
 			cout<<"Error in opening GEOinp.txt file"<<endl;
@@ -535,43 +543,26 @@ void SetMeshBoundary(int Row, int Col,vector< vector<MeshScintillator > >& S1Mes
 }
 
 
-void AssignTriPT(int i, int j,vector< vector<MeshScintillator > >& S1Mesh, Scintillator scint1, Sphereisect sphere1){
+bool CornersIntersect(int i, int j,vector< vector<MeshScintillator > >& S1Mesh, Scintillator scint1, Sphereisect sphere1){
+	bool IsectTest;
 	if (sphere1.getRadius() > sqrt( pow(S1Mesh[i][j].getxMin()-sphere1.getXVert(),2) + pow(S1Mesh[i][j].getyMin() \
 	    -sphere1.getYVert(),2) + pow(scint1.getZVert()-sphere1.getZVert(),2) ) ) {
-   	S1Mesh[i][j].setPT(Tri_Isect);
+   	IsectTest=true;
+		
    } else if (sphere1.getRadius() > sqrt( pow(S1Mesh[i][j].getxMax()-sphere1.getXVert(),2) + pow(S1Mesh[i][j].getyMin() \
 				-sphere1.getYVert(),2) + pow(scint1.getZVert()-sphere1.getZVert(),2) ) ) {
-      S1Mesh[i][j].setPT(Tri_Isect);
+   	IsectTest=true;
    } else if (sphere1.getRadius() > sqrt( pow(S1Mesh[i][j].getxMin()-sphere1.getXVert(),2) + pow(S1Mesh[i][j].getyMax() \
 				-sphere1.getYVert(),2) + pow(scint1.getZVert()-sphere1.getZVert(),2) ) ) {
-      S1Mesh[i][j].setPT(Tri_Isect);
+   	IsectTest=true;
    } else if (sphere1.getRadius() > sqrt( pow(S1Mesh[i][j].getxMax()-sphere1.getXVert(),2) + pow(S1Mesh[i][j].getyMax() \
 				  -sphere1.getYVert(),2) + pow(scint1.getZVert()-sphere1.getZVert(),2) ) ) {
-      S1Mesh[i][j].setPT(Tri_Isect);
+   	IsectTest=true;
    } else {
-      S1Mesh[i][j].setPT(Tri_Plain);
+   	IsectTest=false;
    }
+	return IsectTest;
 }
-
-
-void AssignRppPT(int i, int j,vector< vector<MeshScintillator > >& S1Mesh, Scintillator scint1, Sphereisect sphere1){
-	if (sphere1.getRadius() > sqrt( pow(S1Mesh[i][j].getxMin()-sphere1.getXVert(),2) + pow(S1Mesh[i][j].getyMin()  \
-			-sphere1.getYVert(),2) + pow(scint1.getZVert()-sphere1.getZVert(),2) ) ) {
-		S1Mesh[i][j].setPT(RPP_Isect);
-	} else if (sphere1.getRadius() > sqrt( pow(S1Mesh[i][j].getxMax()-sphere1.getXVert(),2) + pow(S1Mesh[i][j].getyMin() \
-			-sphere1.getYVert(),2)  + pow(scint1.getZVert()-sphere1.getZVert(),2) ) ) {
-		S1Mesh[i][j].setPT(RPP_Isect);
-	} else if (sphere1.getRadius() > sqrt( pow(S1Mesh[i][j].getxMin()-sphere1.getXVert(),2) + pow(S1Mesh[i][j].getyMax() \
-			-sphere1.getYVert(),2) + pow(scint1.getZVert()-sphere1.getZVert(),2) ) ) {
-		S1Mesh[i][j].setPT(RPP_Isect);
-	} else if (sphere1.getRadius() > sqrt( pow(S1Mesh[i][j].getxMax()-sphere1.getXVert(),2) + pow(S1Mesh[i][j].getyMax() \
-			-sphere1.getYVert(),2) + pow(scint1.getZVert()-sphere1.getZVert(),2) ) ) {
-		S1Mesh[i][j].setPT(RPP_Isect);
-	} else {
-		S1Mesh[i][j].setPT(RPP_Plain);
-	}
-}
-
 
 void bubbleSort(double arr[], int n) {
       bool swapped = true;
